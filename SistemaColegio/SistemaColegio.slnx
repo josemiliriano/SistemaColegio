@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Infraestructure/Infraestructure.csproj" />
+  <Project Path="SistemaColegio/SistemaColegio.csproj" />
+</Solution>
