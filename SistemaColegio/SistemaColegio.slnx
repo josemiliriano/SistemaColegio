@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="Application/Application.csproj" />
+  <Project Path="Domain/Domain.csproj" />
   <Project Path="Infraestructure/Infraestructure.csproj" />
   <Project Path="SistemaColegio/SistemaColegio.csproj" />
 </Solution>
