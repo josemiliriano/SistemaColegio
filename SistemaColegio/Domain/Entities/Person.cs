@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -18,6 +19,10 @@ namespace Domain.Entities
         public string Telefono { get; set; }
         public string Direccion { get; set; }
         public string Correo { get; set; }
+        public char Activo { get; set; } = '1';
         public char IsDelete { get; set; } = '0';
+        public CDUser Usuario { get; set; }
+        public Estudent Estudiante { get; set; }
+        public Professor Profesor { get; set; }
     }
 }

@@ -5,14 +5,14 @@ using System.Text;
 
 namespace Domain.Entities
 {
-    public class Estudent
+    public class Classroom
     {
         [Key]
-        public int IdEstudiante { get; set; }
-        public int IdPersona { get; set; }
-        public int CodigoEstudiante { get; set; }
+        public int IdAula { get; set; }
+        public string Nombre { get; set; }
+        public string Ubicacion { get; set; }
+        public int Capacidad { get; set; }
         public char Activo { get; set; } = '1';
         public char IsDelete { get; set; } = '0';
-        public Person Person { get; set; }
     }
 }

@@ -17,5 +17,9 @@ namespace Domain.Entities
         public DateTime FechaFin { get; set; }
         public char Activo { get; set; } = '1';
         public char IsDelete { get; set; } = '0';
+        public ICollection<CoursePeriod> CoursePeriods { get; set; }
+
     }
 }
+
+
