@@ -69,7 +69,31 @@ namespace Infraestructure.Data
                     cp.IdCurso,
                     cp.IdPeriodo
                 })
-                .IsUnique();
+                .IsUnique();            
+
+            modelBuilder.Entity<AcademicSubPeriod>()
+                .HasOne(x => x.Period)
+                .WithMany(x => x.AcademicSubPeriods)
+                .HasForeignKey(x => x.IdPeriodo)
+                .OnDelete(DeleteBehavior.Restrict);            
+
+            modelBuilder.Entity<AcademicSubPeriod>()
+                .HasOne(x => x.SubPeriod)
+                .WithMany(x => x.AcademicSubPeriods)
+                .HasForeignKey(x => x.IdSubPeriodo)
+                .OnDelete(DeleteBehavior.Restrict);            
+
+            modelBuilder.Entity<AcademicMonth>()
+                .HasOne(x => x.AcademicSubPeriod)
+                .WithMany(x => x.AcademicMonths)
+                .HasForeignKey(x => x.IdPeriodoAcademico)
+                .OnDelete(DeleteBehavior.Restrict);            
+
+            modelBuilder.Entity<AcademicMonth>()
+                .HasOne(x => x.Month)
+                .WithMany(x => x.AcademicMonths)
+                .HasForeignKey(x => x.IdMes)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<Person> Persons { get; set; }
         public DbSet<CDUser> Users { get; set; }
@@ -80,6 +104,10 @@ namespace Infraestructure.Data
         public DbSet<ProfessorSubject> ProfessorSubjects { get; set; }
         public DbSet<Course> Courses { get; set; }        
         public DbSet<CoursePeriod> CoursePeriods { get; set; }
+        public DbSet<SubPeriod> SubPeriods { get; set; }
+        public DbSet<AcademicSubPeriod> AcademicSubPeriods { get; set; }
+        public DbSet<Month> Months { get; set; }
+        public DbSet<AcademicMonth> AcademicMonths { get; set; }
 
     }
 }

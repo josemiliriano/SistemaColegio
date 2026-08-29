@@ -6,23 +6,20 @@ using System.Text;
 
 namespace Domain.Entities
 {
-    public class Period
+    public class AcademicSubPeriod
     {
         [Key]
+        public int IdPeriodoAcademico { get; set; }
         public int IdPeriodo { get; set; }
-        public string Nombre { get; set; }
-
+        public int IdSubPeriodo { get; set; }
         [Column(TypeName = "date")]
         public DateTime FechaInicio { get; set; }
-
         [Column(TypeName = "date")]
         public DateTime FechaFin { get; set; }
         public char Activo { get; set; } = '1';
-        public char IsDelete { get; set; } = '0';
-        public ICollection<CoursePeriod> CoursePeriods { get; set; } = new List<CoursePeriod>();
-        public ICollection<AcademicSubPeriod> AcademicSubPeriods { get; set; } = new List<AcademicSubPeriod>();
-
+        public char IsDelete { get; set; } = '0';        
+        public Period Period { get; set; }
+        public SubPeriod SubPeriod { get; set; }
+        public ICollection<AcademicMonth> AcademicMonths { get; set; } = new List<AcademicMonth>();
     }
 }
-
-
