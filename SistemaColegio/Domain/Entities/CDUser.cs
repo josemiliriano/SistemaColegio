@@ -12,7 +12,8 @@ namespace Domain.Entities
         public int IdPersona { get; set; }
         public string NombreUsuario { get; set; }
         public string Password { get; set; }
-        public char Activo { get; set; } = '1';
+        public char Activo { get; set; } = '1';             
         public char IsDelete { get; set; } = '0';
+        public Person Persona { get; set; }
     }
 }
