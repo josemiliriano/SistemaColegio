@@ -14,5 +14,6 @@ namespace Domain.Entities
         public int Capacidad { get; set; }
         public char Activo { get; set; } = '1';
         public char IsDelete { get; set; } = '0';
+        public ICollection<SessionPeriod> SessionPeriods { get; set; } = new List<SessionPeriod>();
     }
 }

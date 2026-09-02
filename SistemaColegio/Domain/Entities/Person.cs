@@ -12,8 +12,7 @@ namespace Domain.Entities
         [Key]
         public int IdPersona { get; set; }
         public string Nombres { get; set; }
-        public string Apellidos { get; set; }
-        public string Documento { get; set; }
+        public string Apellidos { get; set; }        
         [Column(TypeName = "date")]
         public DateTime FechaNacimiento { get; set; }
         public string Telefono { get; set; }

@@ -21,6 +21,7 @@ namespace Domain.Entities
         public char IsDelete { get; set; } = '0';
         public ICollection<CoursePeriod> CoursePeriods { get; set; } = new List<CoursePeriod>();
         public ICollection<AcademicSubPeriod> AcademicSubPeriods { get; set; } = new List<AcademicSubPeriod>();
+        public ICollection<SessionPeriod> SessionPeriods { get; set; } = new List<SessionPeriod>();
 
     }
 }
