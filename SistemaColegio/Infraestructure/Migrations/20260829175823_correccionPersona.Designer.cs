@@ -4,6 +4,7 @@ using Infraestructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infraestructure.Migrations
 {
     [DbContext(typeof(MyDataContext))]
-    partial class MyDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260829175823_correccionPersona")]
+    partial class correccionPersona
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,9 +111,6 @@ namespace Infraestructure.Migrations
                     b.Property<int>("IdPersona")
                         .HasColumnType("int");
 
-                    b.Property<int>("IdRol")
-                        .HasColumnType("int");
-
                     b.Property<string>("IsDelete")
                         .IsRequired()
                         .HasColumnType("nvarchar(1)");
@@ -128,41 +128,7 @@ namespace Infraestructure.Migrations
                     b.HasIndex("IdPersona")
                         .IsUnique();
 
-                    b.HasIndex("IdRol");
-
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Classroom", b =>
-                {
-                    b.Property<int>("IdAula")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdAula"));
-
-                    b.Property<string>("Activo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<int>("Capacidad")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IsDelete")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Ubicacion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("IdAula");
-
-                    b.ToTable("Classroom");
                 });
 
             modelBuilder.Entity("Domain.Entities.Course", b =>
@@ -212,38 +178,6 @@ namespace Infraestructure.Migrations
                         .IsUnique();
 
                     b.ToTable("CoursePeriods");
-                });
-
-            modelBuilder.Entity("Domain.Entities.CourseSubject", b =>
-                {
-                    b.Property<int>("IdCursoMateria")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdCursoMateria"));
-
-                    b.Property<string>("Activo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<int>("IdCurso")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdMateria")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IsDelete")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.HasKey("IdCursoMateria");
-
-                    b.HasIndex("IdMateria");
-
-                    b.HasIndex("IdCurso", "IdMateria")
-                        .IsUnique();
-
-                    b.ToTable("CourseSubjects");
                 });
 
             modelBuilder.Entity("Domain.Entities.Estudent", b =>
@@ -370,11 +304,16 @@ namespace Infraestructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ProfesorIdProfesor")
+                        .HasColumnType("int");
+
                     b.Property<string>("Telefono")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("IdPersona");
+
+                    b.HasIndex("ProfesorIdProfesor");
 
                     b.ToTable("Persons");
                 });
@@ -408,9 +347,6 @@ namespace Infraestructure.Migrations
 
                     b.HasKey("IdProfesor");
 
-                    b.HasIndex("IdPersona")
-                        .IsUnique();
-
                     b.ToTable("Professors");
                 });
 
@@ -436,39 +372,17 @@ namespace Infraestructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(1)");
 
+                    b.Property<int>("SubjectIdMateria")
+                        .HasColumnType("int");
+
                     b.HasKey("IdProfesorMateria");
 
-                    b.HasIndex("IdMateria");
+                    b.HasIndex("SubjectIdMateria");
 
                     b.HasIndex("IdProfesor", "IdMateria")
                         .IsUnique();
 
                     b.ToTable("ProfessorSubjects");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Role", b =>
-                {
-                    b.Property<int>("IdRol")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdRol"));
-
-                    b.Property<string>("Activo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("IsDelete")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("NombreRol")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("IdRol");
-
-                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("Domain.Entities.Session", b =>
@@ -505,34 +419,6 @@ namespace Infraestructure.Migrations
                     b.HasIndex("CourseIdCurso");
 
                     b.ToTable("Session");
-                });
-
-            modelBuilder.Entity("Domain.Entities.SessionPeriod", b =>
-                {
-                    b.Property<int>("IdSessionPeriod")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdSessionPeriod"));
-
-                    b.Property<int>("IdAula")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdPeriodo")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdSeccion")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdSessionPeriod");
-
-                    b.HasIndex("IdAula");
-
-                    b.HasIndex("IdPeriodo");
-
-                    b.HasIndex("IdSeccion");
-
-                    b.ToTable("SessionPeriod");
                 });
 
             modelBuilder.Entity("Domain.Entities.SubPeriod", b =>
@@ -588,38 +474,6 @@ namespace Infraestructure.Migrations
                     b.ToTable("Subjects");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TeachingAssignment", b =>
-                {
-                    b.Property<int>("IdAsignacionDocente")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdAsignacionDocente"));
-
-                    b.Property<string>("Activo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<int>("IdProfesorMateria")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdSessionPeriod")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IsDelete")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.HasKey("IdAsignacionDocente");
-
-                    b.HasIndex("IdSessionPeriod");
-
-                    b.HasIndex("IdProfesorMateria", "IdSessionPeriod")
-                        .IsUnique();
-
-                    b.ToTable("TeachingAssignment");
-                });
-
             modelBuilder.Entity("Domain.Entities.AcademicMonth", b =>
                 {
                     b.HasOne("Domain.Entities.Month", "Month")
@@ -666,15 +520,7 @@ namespace Infraestructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Role", "Rol")
-                        .WithMany("Users")
-                        .HasForeignKey("IdRol")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Persona");
-
-                    b.Navigation("Rol");
                 });
 
             modelBuilder.Entity("Domain.Entities.CoursePeriod", b =>
@@ -696,25 +542,6 @@ namespace Infraestructure.Migrations
                     b.Navigation("Period");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CourseSubject", b =>
-                {
-                    b.HasOne("Domain.Entities.Course", "Course")
-                        .WithMany("CourseSubjects")
-                        .HasForeignKey("IdCurso")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Subject", "Subject")
-                        .WithMany("CourseSubjects")
-                        .HasForeignKey("IdMateria")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-
-                    b.Navigation("Subject");
-                });
-
             modelBuilder.Entity("Domain.Entities.Estudent", b =>
                 {
                     b.HasOne("Domain.Entities.Person", "Person")
@@ -726,29 +553,29 @@ namespace Infraestructure.Migrations
                     b.Navigation("Person");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Professor", b =>
+            modelBuilder.Entity("Domain.Entities.Person", b =>
                 {
-                    b.HasOne("Domain.Entities.Person", "Persona")
-                        .WithOne("Profesor")
-                        .HasForeignKey("Domain.Entities.Professor", "IdPersona")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("Domain.Entities.Professor", "Profesor")
+                        .WithMany()
+                        .HasForeignKey("ProfesorIdProfesor")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Persona");
+                    b.Navigation("Profesor");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProfessorSubject", b =>
                 {
-                    b.HasOne("Domain.Entities.Subject", "Subject")
-                        .WithMany("ProfessorSubjects")
-                        .HasForeignKey("IdMateria")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Domain.Entities.Professor", "Professor")
                         .WithMany("ProfessorSubjects")
                         .HasForeignKey("IdProfesor")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Subject", "Subject")
+                        .WithMany("ProfessorSubjects")
+                        .HasForeignKey("SubjectIdMateria")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Professor");
@@ -767,66 +594,13 @@ namespace Infraestructure.Migrations
                     b.Navigation("Course");
                 });
 
-            modelBuilder.Entity("Domain.Entities.SessionPeriod", b =>
-                {
-                    b.HasOne("Domain.Entities.Classroom", "Classroom")
-                        .WithMany("SessionPeriods")
-                        .HasForeignKey("IdAula")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Period", "Period")
-                        .WithMany("SessionPeriods")
-                        .HasForeignKey("IdPeriodo")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Session", "Session")
-                        .WithMany("SessionPeriods")
-                        .HasForeignKey("IdSeccion")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Classroom");
-
-                    b.Navigation("Period");
-
-                    b.Navigation("Session");
-                });
-
-            modelBuilder.Entity("Domain.Entities.TeachingAssignment", b =>
-                {
-                    b.HasOne("Domain.Entities.ProfessorSubject", "ProfessorSubject")
-                        .WithMany()
-                        .HasForeignKey("IdProfesorMateria")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.SessionPeriod", "SessionPeriod")
-                        .WithMany()
-                        .HasForeignKey("IdSessionPeriod")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ProfessorSubject");
-
-                    b.Navigation("SessionPeriod");
-                });
-
             modelBuilder.Entity("Domain.Entities.AcademicSubPeriod", b =>
                 {
                     b.Navigation("AcademicMonths");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Classroom", b =>
-                {
-                    b.Navigation("SessionPeriods");
-                });
-
             modelBuilder.Entity("Domain.Entities.Course", b =>
                 {
-                    b.Navigation("CourseSubjects");
-
                     b.Navigation("CursoPeriodos");
 
                     b.Navigation("Sessions");
@@ -842,16 +616,11 @@ namespace Infraestructure.Migrations
                     b.Navigation("AcademicSubPeriods");
 
                     b.Navigation("CoursePeriods");
-
-                    b.Navigation("SessionPeriods");
                 });
 
             modelBuilder.Entity("Domain.Entities.Person", b =>
                 {
                     b.Navigation("Estudiante")
-                        .IsRequired();
-
-                    b.Navigation("Profesor")
                         .IsRequired();
 
                     b.Navigation("Usuario")
@@ -863,16 +632,6 @@ namespace Infraestructure.Migrations
                     b.Navigation("ProfessorSubjects");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Role", b =>
-                {
-                    b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Session", b =>
-                {
-                    b.Navigation("SessionPeriods");
-                });
-
             modelBuilder.Entity("Domain.Entities.SubPeriod", b =>
                 {
                     b.Navigation("AcademicSubPeriods");
@@ -880,8 +639,6 @@ namespace Infraestructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Subject", b =>
                 {
-                    b.Navigation("CourseSubjects");
-
                     b.Navigation("ProfessorSubjects");
                 });
 #pragma warning restore 612, 618

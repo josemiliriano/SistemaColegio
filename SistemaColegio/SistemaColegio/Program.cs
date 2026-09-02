@@ -1,4 +1,8 @@
+using Application.Persona;
+using Application.Profesor;
+using Application.Usuario;
 using Infraestructure.Data;
+using Infraestructure.Repository;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +12,10 @@ builder.Services.AddDbContext<MyDataContext>(options => options.UseSqlServer(bui
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped(typeof(GeneralRepository<>));
+builder.Services.AddScoped<IPersonAppService, PersonAppService>();
+builder.Services.AddScoped<IUserAppService, UserAppService>();
+builder.Services.AddScoped<IProfesorAppService, ProfessorAppService>();
 
 var app = builder.Build();
 

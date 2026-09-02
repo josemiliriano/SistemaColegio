@@ -14,6 +14,11 @@ namespace Domain.Entities
         public string Especialidad { get; set; }
         public char Activo { get; set; } = '1';
         public char IsDelete { get; set; } = '0';
+
+        // Navegación hacia Person
+        public Person Persona { get; set; }
+
+        // Relación con las materias
         public ICollection<ProfessorSubject> ProfessorSubjects { get; set; }
     }
 }

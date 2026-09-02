@@ -31,8 +31,7 @@ namespace Infraestructure.Repository
             return await _context.Set<T>().ToListAsync();
         }
 
-        public async Task<List<T>> GetAllInclude(
-            params Expression<Func<T, object>>[] includes)
+        public async Task<List<T>> GetAllInclude(params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _context.Set<T>();
 
@@ -59,12 +58,13 @@ namespace Infraestructure.Repository
 
         public async Task<T> Delete(T entity)
         {
-            _context.Remove(entity);
+            _context.Set<T>().Update(entity);
             await _context.SaveChangesAsync();
 
             return entity;
         }
-    }
+    }    
+   
 }
 
 /*

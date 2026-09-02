@@ -1,19 +1,19 @@
-﻿using Domain.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Domain.Entities
 {
-    public class Subject
+    public class CourseSubject
     {
         [Key]
+        public int IdCursoMateria { get; set; }
+        public int IdCurso { get; set; }
         public int IdMateria { get; set; }
-        public string Nombre { get; set; }
         public char Activo { get; set; } = '1';
         public char IsDelete { get; set; } = '0';
-        public ICollection<ProfessorSubject> ProfessorSubjects { get; set; }
-        public ICollection<CourseSubject> CourseSubjects { get; set; } = new List<CourseSubject>();
+        public Course Course { get; set; }
+        public Subject Subject { get; set; }
     }
 }

@@ -5,18 +5,15 @@ using System.Text;
 
 namespace Domain.Entities
 {
-    public class SessionPeriod
+    public class TeachingAssignment
     {
         [Key]
+        public int IdAsignacionDocente { get; set; }
+        public int IdProfesorMateria { get; set; }
         public int IdSessionPeriod { get; set; }
-        public int IdSeccion { get; set; }
-        public int IdPeriodo { get; set; }
-        public int IdAula { get; set; }
         public char Activo { get; set; } = '1';
         public char IsDelete { get; set; } = '0';
-        public Session Session { get; set; }
-        public Period Period { get; set; }
-        public Classroom Classroom { get; set; }
-
+        public ProfessorSubject ProfessorSubject { get; set; }
+        public SessionPeriod SessionPeriod { get; set; }
     }
 }
