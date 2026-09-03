@@ -10,7 +10,9 @@ namespace Domain.Entities
         [Key]
         public int IdCursoPeriodo { get; set; }        
         public int IdCurso { get; set; }        
-        public int IdPeriodo { get; set; }        
+        public int IdPeriodo { get; set; }
+        public char Activo { get; set; } = '1';
+        public char IsDelete { get; set; } = '0';
         public Course Course { get; set; }
         public Period Period { get; set; }
     }

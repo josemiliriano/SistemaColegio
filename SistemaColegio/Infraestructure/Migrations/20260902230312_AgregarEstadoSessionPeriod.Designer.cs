@@ -4,6 +4,7 @@ using Infraestructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infraestructure.Migrations
 {
     [DbContext(typeof(MyDataContext))]
-    partial class MyDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260902230312_AgregarEstadoSessionPeriod")]
+    partial class AgregarEstadoSessionPeriod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,19 +201,11 @@ namespace Infraestructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdCursoPeriodo"));
 
-                    b.Property<string>("Activo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
                     b.Property<int>("IdCurso")
                         .HasColumnType("int");
 
                     b.Property<int>("IdPeriodo")
                         .HasColumnType("int");
-
-                    b.Property<string>("IsDelete")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
 
                     b.HasKey("IdCursoPeriodo");
 
