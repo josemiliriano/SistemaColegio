@@ -26,7 +26,7 @@ namespace Application.Profesor
             _roleRepository = roleRepository;
         }
 
-        public async Task<ProfesorDto> AddProfessor(ProfesorDto professor)
+        public async Task<ProfesorDto> AddProfessor(CreateProfesorDto professor)
         {
             // Validar cédula
             var professors = await _professorRepository.GetAll();
@@ -96,7 +96,7 @@ namespace Application.Profesor
                 IdPersona = person.IdPersona,
                 IdRol = role.IdRol,
                 NombreUsuario = professor.NombreUsuario,
-                Password = professor.Password,
+                Password = BCrypt.Net.BCrypt.HashPassword(professor.Password),
                 Activo = professor.Activo,
                 IsDelete = '0'
             };
@@ -117,8 +117,7 @@ namespace Application.Profesor
                 Especialidad = newProfessor.Especialidad,
                 Activo = newProfessor.Activo,
 
-                NombreUsuario = newUser.NombreUsuario,
-                Password = newUser.Password
+                NombreUsuario = newUser.NombreUsuario                
             };
         }
 
@@ -147,12 +146,9 @@ namespace Application.Profesor
 
         public async Task<ProfesorDto> GetProfessorById(int idProfesor)
         {
-            var professors = await _professorRepository.GetAllInclude(
-                p => p.Persona);
+            var professors = await _professorRepository.GetAllInclude(p => p.Persona);
 
-            var professor = professors.FirstOrDefault(p =>
-                p.IdProfesor == idProfesor &&
-                p.IsDelete == '0');
+            var professor = professors.FirstOrDefault(p => p.IdProfesor == idProfesor && p.IsDelete == '0');
 
             if (professor == null)
             {
@@ -174,9 +170,7 @@ namespace Application.Profesor
             };
         }
 
-        public async Task<ProfesorDto> UpdateProfessor(
-            int idProfesor,
-            ProfesorDto professor)
+        public async Task<ProfesorDto> UpdateProfessor(int idProfesor,ProfesorDto professor)
         {
             var professors = await _professorRepository.GetAllInclude(
                 p => p.Persona);
@@ -201,30 +195,7 @@ namespace Application.Profesor
                 throw new Exception("La cédula ya está registrada.");
             }
 
-            // Buscar usuario relacionado
-            var users = await _userRepository.GetAll();
-
-            var existingUser = users.FirstOrDefault(u =>
-                u.IdPersona == existingProfessor.IdPersona &&
-                u.IsDelete == '0');
-
-            if (existingUser == null)
-            {
-                throw new Exception("El usuario del profesor no existe.");
-            }
-
-            // Validar nombre de usuario
-            var userExists = users.Any(u =>
-                u.IdUsuario != existingUser.IdUsuario &&
-                u.NombreUsuario == professor.NombreUsuario &&
-                u.IsDelete == '0');
-
-            if (userExists)
-            {
-                throw new Exception("El nombre de usuario ya existe.");
-            }
-
-            // Actualizar Person
+            // Actualizar datos de Person
             existingProfessor.Persona.Nombres = professor.Nombres;
             existingProfessor.Persona.Apellidos = professor.Apellidos;
             existingProfessor.Persona.FechaNacimiento = professor.FechaNacimiento;
@@ -232,20 +203,16 @@ namespace Application.Profesor
             existingProfessor.Persona.Direccion = professor.Direccion;
             existingProfessor.Persona.Correo = professor.Correo;
 
-            // Actualizar Professor
+            // Actualizar datos de Professor
             existingProfessor.Cedula = professor.Cedula;
             existingProfessor.Especialidad = professor.Especialidad;
             existingProfessor.Activo = professor.Activo;
 
-            // Actualizar User
-            existingUser.NombreUsuario = professor.NombreUsuario;
-            existingUser.Password = professor.Password;
-            existingUser.Activo = professor.Activo;
-
+            // Guardar cambios
             await _personRepository.Update(existingProfessor.Persona);
             await _professorRepository.Update(existingProfessor);
-            await _userRepository.Update(existingUser);
 
+            // Retornar información actualizada
             return new ProfesorDto
             {
                 Nombres = existingProfessor.Persona.Nombres,
@@ -257,10 +224,7 @@ namespace Application.Profesor
 
                 Cedula = existingProfessor.Cedula,
                 Especialidad = existingProfessor.Especialidad,
-                Activo = existingProfessor.Activo,
-
-                NombreUsuario = existingUser.NombreUsuario,
-                Password = existingUser.Password
+                Activo = existingProfessor.Activo                
             };
         }
 
@@ -273,9 +237,25 @@ namespace Application.Profesor
                 return null;
             }
 
+            // Eliminación lógica del profesor
             professor.IsDelete = '1';
+            professor.Activo = '0';
 
-            await _professorRepository.Delete(professor);
+            await _professorRepository.Update(professor);
+
+            // Buscar usuario relacionado
+            var users = await _userRepository.GetAll();
+
+            var user = users.FirstOrDefault(u => u.IdPersona == professor.IdPersona && u.IsDelete == '0');
+
+            if (user != null)
+            {
+                // Desactivar y eliminar lógicamente el usuario
+                user.IsDelete = '1';
+                user.Activo = '0';
+
+                await _userRepository.Update(user);
+            }
 
             return new ProfesorDto
             {

@@ -21,7 +21,7 @@ public class UserAppService : IUserAppService
         _roleRepository = roleRepository;
     }
 
-    public async Task<UserDto> AddUser(UserDto user)
+    public async Task<UserDto> AddUser(CreateUserDto user)
     {
         // Validar que el nombre de usuario no exista
         var users = await _userRepository.GetAll();
@@ -39,7 +39,7 @@ public class UserAppService : IUserAppService
         var roles = await _roleRepository.GetAll();
 
         var role = roles.FirstOrDefault(r =>
-            r.NombreRol == user.NombreRol &&
+            r.IdRol == user.IdRol &&
             r.IsDelete == '0' &&
             r.Activo == '1');
 
@@ -67,14 +67,17 @@ public class UserAppService : IUserAppService
             IdPersona = person.IdPersona,
             IdRol = role.IdRol,
             NombreUsuario = user.NombreUsuario,
-            Password = user.Password,
-            Activo = user.Activo,
+
+            // Hashear la contraseña
+            Password = BCrypt.Net.BCrypt.HashPassword(user.Password),
+
+            Activo = '1',
             IsDelete = '0'
         };
 
         newUser = await _userRepository.Add(newUser);
 
-        // Retornar DTO
+        // Retornar DTO sin contraseña
         return new UserDto
         {
             Nombres = person.Nombres,
@@ -85,7 +88,6 @@ public class UserAppService : IUserAppService
             Correo = person.Correo,
 
             NombreUsuario = newUser.NombreUsuario,
-            Password = newUser.Password,
             Activo = newUser.Activo,
 
             NombreRol = role.NombreRol
@@ -110,12 +112,10 @@ public class UserAppService : IUserAppService
                 Correo = u.Persona.Correo,
 
                 NombreUsuario = u.NombreUsuario,
-                Password = u.Password,
                 Activo = u.Activo,
 
                 NombreRol = u.Rol.NombreRol
-            })
-            .ToList();
+            }).ToList();
     }
 
     public async Task<UserDto> GetUserById(int idUsuario)
@@ -124,9 +124,7 @@ public class UserAppService : IUserAppService
             u => u.Persona,
             u => u.Rol);
 
-        var user = users.FirstOrDefault(u =>
-            u.IdUsuario == idUsuario &&
-            u.IsDelete == '0');
+        var user = users.FirstOrDefault(u => u.IdUsuario == idUsuario && u.IsDelete == '0');
 
         if (user == null)
         {
@@ -143,7 +141,6 @@ public class UserAppService : IUserAppService
             Correo = user.Persona.Correo,
 
             NombreUsuario = user.NombreUsuario,
-            Password = user.Password,
             Activo = user.Activo,
 
             NombreRol = user.Rol.NombreRol
@@ -152,13 +149,9 @@ public class UserAppService : IUserAppService
 
     public async Task<UserDto> UpdateUser(int idUsuario, UserDto user)
     {
-        var users = await _userRepository.GetAllInclude(
-            u => u.Persona,
-            u => u.Rol);
+        var users = await _userRepository.GetAllInclude(u => u.Persona, u => u.Rol);
 
-        var existingUser = users.FirstOrDefault(u =>
-            u.IdUsuario == idUsuario &&
-            u.IsDelete == '0');
+        var existingUser = users.FirstOrDefault(u => u.IdUsuario == idUsuario && u.IsDelete == '0');
 
         if (existingUser == null)
         {
@@ -198,8 +191,7 @@ public class UserAppService : IUserAppService
         existingUser.Persona.Correo = user.Correo;
 
         // Actualizar User
-        existingUser.NombreUsuario = user.NombreUsuario;
-        existingUser.Password = user.Password;
+        existingUser.NombreUsuario = user.NombreUsuario;        
         existingUser.Activo = user.Activo;
         existingUser.IdRol = role.IdRol;
 
@@ -216,7 +208,6 @@ public class UserAppService : IUserAppService
             Correo = existingUser.Persona.Correo,
 
             NombreUsuario = existingUser.NombreUsuario,
-            Password = existingUser.Password,
             Activo = existingUser.Activo,
 
             NombreRol = role.NombreRol
@@ -232,14 +223,15 @@ public class UserAppService : IUserAppService
             return null;
         }
 
+        // Eliminación lógica
         user.IsDelete = '1';
+        user.Activo = '0';
 
-        await _userRepository.Delete(user);
+        await _userRepository.Update(user);
 
         return new UserDto
         {
-            NombreUsuario = user.NombreUsuario,
-            Password = user.Password,
+            NombreUsuario = user.NombreUsuario,            
             Activo = user.Activo
         };
     }
@@ -247,5 +239,30 @@ public class UserAppService : IUserAppService
     public async Task<List<UserDto>> GetUserNotDeleted()
     {
         return await GetAllUser();
+    }
+
+    public async Task<bool> ChangePassword(int idUsuario, ChangePasswordDto passwordDto)
+    {
+        var user = await _userRepository.GetById(idUsuario);
+
+        if (user == null || user.IsDelete == '1' || user.Activo == '0')
+        {
+            return false;
+        }
+
+        // Verificar la contraseña actual
+        var passwordCorrecta = BCrypt.Net.BCrypt.Verify(passwordDto.PasswordActual, user.Password);
+
+        if (!passwordCorrecta)
+        {
+            return false;
+        }
+
+        // Generar nuevo hash
+        user.Password = BCrypt.Net.BCrypt.HashPassword(passwordDto.NuevaPassword);
+
+        await _userRepository.Update(user);
+
+        return true;
     }
 }

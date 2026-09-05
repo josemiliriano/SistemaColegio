@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Application.Usuario.DTOs
 {
-    public class UserDto
+    public class CreateUserDto
     {
         public string Nombres { get; set; }
         public string Apellidos { get; set; }
@@ -13,12 +13,9 @@ namespace Application.Usuario.DTOs
         public string Direccion { get; set; }
         public string Correo { get; set; }
 
-        // Datos de CDUser
         public string NombreUsuario { get; set; }
-        public char Activo { get; set; }
+        public string Password { get; set; }
 
-        // Datos del Role
-        public string NombreRol { get; set; }
+        public int IdRol { get; set; }
     }
 }
-

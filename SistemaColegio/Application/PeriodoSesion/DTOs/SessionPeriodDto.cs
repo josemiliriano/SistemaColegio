@@ -6,6 +6,7 @@ namespace Application.PeriodoSesion.DTOs
 {
     public class SessionPeriodDto
     {
+        public int IdSessionPeriod { get; set; }
         public int IdSeccion { get; set; }
         public int IdPeriodo { get; set; }
         public int IdAula { get; set; }
