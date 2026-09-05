@@ -9,9 +9,14 @@ namespace Application.ProfesorMateria
 {
     public class ProfessorSubjectAppService : IProfessorSubjectAppService
     {
-        private readonly GeneralRepository<ProfessorSubject> _professorSubjectRepository;
-        private readonly GeneralRepository<Professor> _professorRepository;
-        private readonly GeneralRepository<Subject> _subjectRepository;
+        private readonly GeneralRepository<ProfessorSubject>
+            _professorSubjectRepository;
+
+        private readonly GeneralRepository<Professor>
+            _professorRepository;
+
+        private readonly GeneralRepository<Subject>
+            _subjectRepository;
 
         public ProfessorSubjectAppService(
             GeneralRepository<ProfessorSubject> professorSubjectRepository,
@@ -23,40 +28,41 @@ namespace Application.ProfesorMateria
             _subjectRepository = subjectRepository;
         }
 
-        public async Task<ProfessorSubjectDto> AddProfessorSubject(ProfessorSubjectDto professorSubject)
+        public async Task<ProfessorSubjectDto> AddProfessorSubject(
+            ProfessorSubjectDto professorSubject)
         {
-            // Verificar que el profesor exista y esté activo
-            var professor = await _professorRepository.GetById(
-                professorSubject.IdProfesor);
+            var professor =
+                await _professorRepository
+                    .GetById(professorSubject.IdProfesor);
 
             if (professor == null ||
                 professor.IsDelete == '1' ||
-                professor.Activo != '1')
+                professor.Activo == '0')
             {
                 throw new Exception(
-                    "El profesor no existe o está inactivo.");
+                    "El profesor especificado no existe o está inactivo.");
             }
 
-            // Verificar que la materia exista y esté activa
-            var subject = await _subjectRepository.GetById(
-                professorSubject.IdMateria);
+            var subject =
+                await _subjectRepository
+                    .GetById(professorSubject.IdMateria);
 
             if (subject == null ||
                 subject.IsDelete == '1' ||
-                subject.Activo != '1')
+                subject.Activo == '0')
             {
                 throw new Exception(
-                    "La materia no existe o está inactiva.");
+                    "La materia especificada no existe o está inactiva.");
             }
 
-            // Verificar si ya existe la relación
             var professorSubjects =
                 await _professorSubjectRepository.GetAll();
 
-            var relationExists = professorSubjects.Any(x =>
-                x.IdProfesor == professorSubject.IdProfesor &&
-                x.IdMateria == professorSubject.IdMateria &&
-                x.IsDelete == '0');
+            var relationExists =
+                professorSubjects.Any(x =>
+                    x.IdProfesor == professorSubject.IdProfesor &&
+                    x.IdMateria == professorSubject.IdMateria &&
+                    x.IsDelete == '0');
 
             if (relationExists)
             {
@@ -73,14 +79,22 @@ namespace Application.ProfesorMateria
             };
 
             newProfessorSubject =
-                await _professorSubjectRepository.Add(
-                    newProfessorSubject);
+                await _professorSubjectRepository
+                    .Add(newProfessorSubject);
 
             return new ProfessorSubjectDto
             {
-                IdProfesor = newProfessorSubject.IdProfesor,
-                IdMateria = newProfessorSubject.IdMateria,
-                Activo = newProfessorSubject.Activo
+                IdProfesorMateria =
+                    newProfessorSubject.IdProfesorMateria,
+
+                IdProfesor =
+                    newProfessorSubject.IdProfesor,
+
+                IdMateria =
+                    newProfessorSubject.IdMateria,
+
+                Activo =
+                    newProfessorSubject.Activo
             };
         }
 
@@ -94,9 +108,17 @@ namespace Application.ProfesorMateria
                 .Where(x => x.IsDelete == '0')
                 .Select(x => new ProfessorSubjectDto
                 {
-                    IdProfesor = x.IdProfesor,
-                    IdMateria = x.IdMateria,
-                    Activo = x.Activo
+                    IdProfesorMateria =
+                        x.IdProfesorMateria,
+
+                    IdProfesor =
+                        x.IdProfesor,
+
+                    IdMateria =
+                        x.IdMateria,
+
+                    Activo =
+                        x.Activo
                 })
                 .ToList();
         }
@@ -105,7 +127,8 @@ namespace Application.ProfesorMateria
             GetProfessorSubjectById(int id)
         {
             var professorSubject =
-                await _professorSubjectRepository.GetById(id);
+                await _professorSubjectRepository
+                    .GetById(id);
 
             if (professorSubject == null ||
                 professorSubject.IsDelete == '1')
@@ -115,9 +138,17 @@ namespace Application.ProfesorMateria
 
             return new ProfessorSubjectDto
             {
-                IdProfesor = professorSubject.IdProfesor,
-                IdMateria = professorSubject.IdMateria,
-                Activo = professorSubject.Activo
+                IdProfesorMateria =
+                    professorSubject.IdProfesorMateria,
+
+                IdProfesor =
+                    professorSubject.IdProfesor,
+
+                IdMateria =
+                    professorSubject.IdMateria,
+
+                Activo =
+                    professorSubject.Activo
             };
         }
 
@@ -125,33 +156,37 @@ namespace Application.ProfesorMateria
             UpdateProfessorSubject(
                 ProfessorSubjectDto professorSubject)
         {
-            var professorSubjects =
-                await _professorSubjectRepository.GetAll();
-
             var existingProfessorSubject =
-                professorSubjects.FirstOrDefault(x =>
-                    x.IdProfesor ==
-                        professorSubject.IdProfesor &&
-                    x.IdMateria ==
-                        professorSubject.IdMateria &&
-                    x.IsDelete == '0');
+                await _professorSubjectRepository
+                    .GetById(
+                        professorSubject.IdProfesorMateria);
 
-            if (existingProfessorSubject == null)
+            if (existingProfessorSubject == null ||
+                existingProfessorSubject.IsDelete == '1')
             {
                 return null;
             }
 
+            // Solo modificamos el estado.
             existingProfessorSubject.Activo =
                 professorSubject.Activo;
 
-            await _professorSubjectRepository.Update(
-                existingProfessorSubject);
+            await _professorSubjectRepository
+                .Update(existingProfessorSubject);
 
             return new ProfessorSubjectDto
             {
-                IdProfesor = existingProfessorSubject.IdProfesor,
-                IdMateria = existingProfessorSubject.IdMateria,
-                Activo = existingProfessorSubject.Activo
+                IdProfesorMateria =
+                    existingProfessorSubject.IdProfesorMateria,
+
+                IdProfesor =
+                    existingProfessorSubject.IdProfesor,
+
+                IdMateria =
+                    existingProfessorSubject.IdMateria,
+
+                Activo =
+                    existingProfessorSubject.Activo
             };
         }
 
@@ -159,33 +194,32 @@ namespace Application.ProfesorMateria
             DeleteProfessorSubject(
                 ProfessorSubjectDto professorSubject)
         {
-            var professorSubjects =
-                await _professorSubjectRepository.GetAll();
-
             var existingProfessorSubject =
-                professorSubjects.FirstOrDefault(x =>
-                    x.IdProfesor ==
-                        professorSubject.IdProfesor &&
-                    x.IdMateria ==
-                        professorSubject.IdMateria &&
-                    x.IsDelete == '0');
+                await _professorSubjectRepository
+                    .GetById(
+                        professorSubject.IdProfesorMateria);
 
-            if (existingProfessorSubject == null)
+            if (existingProfessorSubject == null ||
+                existingProfessorSubject.IsDelete == '1')
             {
                 return null;
             }
 
-            // Borrado lógico
+            // Eliminación lógica
             existingProfessorSubject.IsDelete = '1';
             existingProfessorSubject.Activo = '0';
 
-            await _professorSubjectRepository.Update(
-                existingProfessorSubject);
+            await _professorSubjectRepository
+                .Update(existingProfessorSubject);
 
             return new ProfessorSubjectDto
             {
+                IdProfesorMateria = existingProfessorSubject.IdProfesorMateria,
+
                 IdProfesor = existingProfessorSubject.IdProfesor,
+
                 IdMateria = existingProfessorSubject.IdMateria,
+
                 Activo = existingProfessorSubject.Activo
             };
         }

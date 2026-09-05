@@ -6,175 +6,254 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Application.PeriodoSesion
-{public class SessionPeriodAppService : ISessionPeriodAppService
+{
+    namespace Application.SeccionPeriodo
     {
-        private readonly GeneralRepository<SessionPeriod> _sessionPeriodRepository;
-
-        public SessionPeriodAppService(
-            GeneralRepository<SessionPeriod> sessionPeriodRepository)
+        public class SessionPeriodAppService : ISessionPeriodAppService
         {
-            _sessionPeriodRepository = sessionPeriodRepository;
-        }
+            private readonly GeneralRepository<SessionPeriod>
+                _sessionPeriodRepository;
 
-        public async Task<SessionPeriodDto> AddSessionPeriod(
-            SessionPeriodDto sessionPeriod)
-        {
-            var sessionPeriods = await _sessionPeriodRepository.GetAll();
-
-            // Validar que la sección no esté registrada
-            // nuevamente en el mismo período
-            var sessionExists = sessionPeriods.Any(x =>
-                x.IdSeccion == sessionPeriod.IdSeccion &&
-                x.IdPeriodo == sessionPeriod.IdPeriodo &&
-                x.IsDelete == '0');
-
-            if (sessionExists)
+            public SessionPeriodAppService(
+                GeneralRepository<SessionPeriod> sessionPeriodRepository)
             {
-                throw new Exception(
-                    "La sección ya está registrada en este período académico.");
+                _sessionPeriodRepository = sessionPeriodRepository;
             }
 
-            // Validar que el aula no esté ocupada
-            // por otra sección en el mismo período
-            var classroomExists = sessionPeriods.Any(x =>
-                x.IdAula == sessionPeriod.IdAula &&
-                x.IdPeriodo == sessionPeriod.IdPeriodo &&
-                x.IsDelete == '0');
-
-            if (classroomExists)
+            public async Task<SessionPeriodDto> AddSessionPeriod(
+                SessionPeriodDto sessionPeriod)
             {
-                throw new Exception(
-                    "El aula ya está asignada a otra sección en este período académico.");
-            }
+                var sessionPeriods =
+                    await _sessionPeriodRepository.GetAll();
 
-            // Crear entidad
-            var newSessionPeriod = new SessionPeriod
-            {
-                IdSeccion = sessionPeriod.IdSeccion,
-                IdPeriodo = sessionPeriod.IdPeriodo,
-                IdAula = sessionPeriod.IdAula,
-                IsDelete = '0'
-            };
+                // Validar que la sección no esté registrada
+                // nuevamente en el mismo período
+                var sessionExists = sessionPeriods.Any(x =>
+                    x.IdSeccion == sessionPeriod.IdSeccion &&
+                    x.IdPeriodo == sessionPeriod.IdPeriodo &&
+                    x.IsDelete == '0');
 
-            // Guardar
-            newSessionPeriod = await _sessionPeriodRepository.Add(
-                newSessionPeriod);
-
-            // Retornar DTO
-            return new SessionPeriodDto
-            {
-                IdSeccion = newSessionPeriod.IdSeccion,
-                IdPeriodo = newSessionPeriod.IdPeriodo,
-                IdAula = newSessionPeriod.IdAula
-            };
-        }
-
-        public async Task<List<SessionPeriodDto>> GetAllSessionPeriod()
-        {
-            var sessionPeriods = await _sessionPeriodRepository.GetAll();
-
-            return sessionPeriods
-                .Where(x => x.IsDelete == '0')
-                .Select(x => new SessionPeriodDto
+                if (sessionExists)
                 {
-                    IdSeccion = x.IdSeccion,
-                    IdPeriodo = x.IdPeriodo,
-                    IdAula = x.IdAula
-                })
-                .ToList();
-        }
+                    throw new Exception(
+                        "La sección ya está registrada en este período académico.");
+                }
 
-        public async Task<SessionPeriodDto> GetSessionPeriodById(int id)
-        {
-            var sessionPeriod = await _sessionPeriodRepository.GetById(id);
+                // Validar que el aula no esté ocupada
+                // por otra sección en el mismo período
+                var classroomExists = sessionPeriods.Any(x =>
+                    x.IdAula == sessionPeriod.IdAula &&
+                    x.IdPeriodo == sessionPeriod.IdPeriodo &&
+                    x.IsDelete == '0');
 
-            if (sessionPeriod == null || sessionPeriod.IsDelete == '1')
-            {
-                return null;
+                if (classroomExists)
+                {
+                    throw new Exception(
+                        "El aula ya está asignada a otra sección en este período académico.");
+                }
+
+                // Crear entidad
+                var newSessionPeriod = new SessionPeriod
+                {
+                    IdSeccion = sessionPeriod.IdSeccion,
+                    IdPeriodo = sessionPeriod.IdPeriodo,
+                    IdAula = sessionPeriod.IdAula,
+                    IsDelete = '0'
+                };
+
+                // Guardar
+                newSessionPeriod =
+                    await _sessionPeriodRepository.Add(newSessionPeriod);
+
+                // Retornar DTO
+                return new SessionPeriodDto
+                {
+                    IdSessionPeriod =
+                        newSessionPeriod.IdSessionPeriod,
+
+                    IdSeccion =
+                        newSessionPeriod.IdSeccion,
+
+                    IdPeriodo =
+                        newSessionPeriod.IdPeriodo,
+
+                    IdAula =
+                        newSessionPeriod.IdAula,
+
+                    IsDelete =
+                        newSessionPeriod.IsDelete
+                };
             }
 
-            return new SessionPeriodDto
+            public async Task<List<SessionPeriodDto>>
+                GetAllSessionPeriod()
             {
-                IdSeccion = sessionPeriod.IdSeccion,
-                IdPeriodo = sessionPeriod.IdPeriodo,
-                IdAula = sessionPeriod.IdAula
-            };
-        }
+                var sessionPeriods =
+                    await _sessionPeriodRepository.GetAll();
 
-        public async Task<SessionPeriodDto> UpdateSessionPeriod(
-            SessionPeriodDto sessionPeriod)
-        {
-            var sessionPeriods = await _sessionPeriodRepository.GetAll();
+                return sessionPeriods
+                    .Where(x => x.IsDelete == '0')
+                    .Select(x => new SessionPeriodDto
+                    {
+                        IdSessionPeriod =
+                            x.IdSessionPeriod,
 
-            var existingSessionPeriod = sessionPeriods.FirstOrDefault(x =>
-                x.IdSeccion == sessionPeriod.IdSeccion &&
-                x.IdPeriodo == sessionPeriod.IdPeriodo &&
-                x.IsDelete == '0');
+                        IdSeccion =
+                            x.IdSeccion,
 
-            if (existingSessionPeriod == null)
-            {
-                return null;
+                        IdPeriodo =
+                            x.IdPeriodo,
+
+                        IdAula =
+                            x.IdAula,
+
+                        IsDelete =
+                            x.IsDelete
+                    })
+                    .ToList();
             }
 
-            // Validar que el aula no esté ocupada por otra sección
-            var classroomExists = sessionPeriods.Any(x =>
-                x.IdSessionPeriod != existingSessionPeriod.IdSessionPeriod &&
-                x.IdAula == sessionPeriod.IdAula &&
-                x.IdPeriodo == sessionPeriod.IdPeriodo &&
-                x.IsDelete == '0');
-
-            if (classroomExists)
+            public async Task<SessionPeriodDto>
+                GetSessionPeriodById(int id)
             {
-                throw new Exception(
-                    "El aula ya está asignada a otra sección en este período académico.");
+                var sessionPeriod =
+                    await _sessionPeriodRepository.GetById(id);
+
+                if (sessionPeriod == null ||
+                    sessionPeriod.IsDelete == '1')
+                {
+                    return null;
+                }
+
+                return new SessionPeriodDto
+                {
+                    IdSessionPeriod =
+                        sessionPeriod.IdSessionPeriod,
+
+                    IdSeccion =
+                        sessionPeriod.IdSeccion,
+
+                    IdPeriodo =
+                        sessionPeriod.IdPeriodo,
+
+                    IdAula =
+                        sessionPeriod.IdAula,
+
+                    IsDelete =
+                        sessionPeriod.IsDelete
+                };
             }
 
-            // Actualizar aula
-            existingSessionPeriod.IdAula = sessionPeriod.IdAula;
-
-            await _sessionPeriodRepository.Update(existingSessionPeriod);
-
-            return new SessionPeriodDto
+            public async Task<SessionPeriodDto>
+                UpdateSessionPeriod(
+                    SessionPeriodDto sessionPeriod)
             {
-                IdSeccion = existingSessionPeriod.IdSeccion,
-                IdPeriodo = existingSessionPeriod.IdPeriodo,
-                IdAula = existingSessionPeriod.IdAula
-            };
-        }
+                var sessionPeriods =
+                    await _sessionPeriodRepository.GetAll();
 
-        public async Task<SessionPeriodDto> DeleteSessionPeriod(
-            SessionPeriodDto sessionPeriod)
-        {
-            var sessionPeriods = await _sessionPeriodRepository.GetAll();
+                // Buscar directamente por el ID
+                var existingSessionPeriod =
+                    sessionPeriods.FirstOrDefault(x =>
+                        x.IdSessionPeriod ==
+                        sessionPeriod.IdSessionPeriod &&
+                        x.IsDelete == '0');
 
-            var existingSessionPeriod = sessionPeriods.FirstOrDefault(x =>
-                x.IdSeccion == sessionPeriod.IdSeccion &&
-                x.IdPeriodo == sessionPeriod.IdPeriodo &&
-                x.IsDelete == '0');
+                if (existingSessionPeriod == null)
+                {
+                    return null;
+                }
 
-            if (existingSessionPeriod == null)
-            {
-                return null;
+                // Validar que el aula no esté ocupada
+                // por otra sección en el mismo período
+                var classroomExists = sessionPeriods.Any(x =>
+                    x.IdSessionPeriod !=
+                        existingSessionPeriod.IdSessionPeriod &&
+
+                    x.IdAula ==
+                        sessionPeriod.IdAula &&
+
+                    x.IdPeriodo ==
+                        existingSessionPeriod.IdPeriodo &&
+
+                    x.IsDelete == '0');
+
+                if (classroomExists)
+                {
+                    throw new Exception(
+                        "El aula ya está asignada a otra sección en este período académico.");
+                }
+
+                // Actualizar únicamente el aula
+                existingSessionPeriod.IdAula =
+                    sessionPeriod.IdAula;
+
+                await _sessionPeriodRepository
+                    .Update(existingSessionPeriod);
+
+                return new SessionPeriodDto
+                {
+                    IdSessionPeriod =
+                        existingSessionPeriod.IdSessionPeriod,
+
+                    IdSeccion =
+                        existingSessionPeriod.IdSeccion,
+
+                    IdPeriodo =
+                        existingSessionPeriod.IdPeriodo,
+
+                    IdAula =
+                        existingSessionPeriod.IdAula,
+
+                    IsDelete =
+                        existingSessionPeriod.IsDelete
+                };
             }
 
-            // Eliminación lógica
-            existingSessionPeriod.IsDelete = '1';
-
-            await _sessionPeriodRepository.Update(existingSessionPeriod);
-
-            return new SessionPeriodDto
+            public async Task<SessionPeriodDto>
+                DeleteSessionPeriod(
+                    SessionPeriodDto sessionPeriod)
             {
-                IdSeccion = existingSessionPeriod.IdSeccion,
-                IdPeriodo = existingSessionPeriod.IdPeriodo,
-                IdAula = existingSessionPeriod.IdAula
-            };
-        }
+                var existingSessionPeriod =
+                    await _sessionPeriodRepository
+                        .GetById(
+                            sessionPeriod.IdSessionPeriod);
 
-        public async Task<List<SessionPeriodDto>> GetSessionPeriodNotDeleted()
-        {
-            return await GetAllSessionPeriod();
+                if (existingSessionPeriod == null ||
+                    existingSessionPeriod.IsDelete == '1')
+                {
+                    return null;
+                }
+
+                // Eliminación lógica
+                existingSessionPeriod.IsDelete = '1';
+
+                await _sessionPeriodRepository
+                    .Update(existingSessionPeriod);
+
+                return new SessionPeriodDto
+                {
+                    IdSessionPeriod =
+                        existingSessionPeriod.IdSessionPeriod,
+
+                    IdSeccion =
+                        existingSessionPeriod.IdSeccion,
+
+                    IdPeriodo =
+                        existingSessionPeriod.IdPeriodo,
+
+                    IdAula =
+                        existingSessionPeriod.IdAula,
+
+                    IsDelete =
+                        existingSessionPeriod.IsDelete
+                };
+            }
+
+            public async Task<List<SessionPeriodDto>>
+                GetSessionPeriodNotDeleted()
+            {
+                return await GetAllSessionPeriod();
+            }
         }
     }
-
-
 }

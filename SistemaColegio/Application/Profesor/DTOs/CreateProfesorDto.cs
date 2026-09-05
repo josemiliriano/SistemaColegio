@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Application.Usuario.DTOs
+namespace Application.Profesor.DTOs
 {
-    public class UserDto
+    public class CreateProfesorDto
     {
+        // Datos de Person
         public string Nombres { get; set; }
         public string Apellidos { get; set; }
         public DateTime FechaNacimiento { get; set; }
@@ -13,12 +14,13 @@ namespace Application.Usuario.DTOs
         public string Direccion { get; set; }
         public string Correo { get; set; }
 
-        // Datos de CDUser
-        public string NombreUsuario { get; set; }
+        // Datos de Professor
+        public string Cedula { get; set; }
+        public string Especialidad { get; set; }
         public char Activo { get; set; }
 
-        // Datos del Role
-        public string NombreRol { get; set; }
+        // Datos para crear el usuario
+        public string NombreUsuario { get; set; }
+        public string Password { get; set; }
     }
 }
-

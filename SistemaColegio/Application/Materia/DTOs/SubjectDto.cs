@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Application.CursoMateria.DTOs
+namespace Application.Materia.DTOs
 {
-    public class CourseSubjectDto
+    public class SubjectDto
     {
-        public int IdCursoMateria { get; set; }
-        public int IdCurso { get; set; }
         public int IdMateria { get; set; }
+        public string Nombre { get; set; }
         public char Activo { get; set; }
     }
 }

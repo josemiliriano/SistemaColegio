@@ -7,149 +7,176 @@ using System.Text;
 
 namespace Application.CursoPeriodo
 {
-    public class CoursePeriodAppService : ICoursePeriodAppService
+    namespace Application.CursoPeriodo
     {
-        private readonly GeneralRepository<CoursePeriod> _coursePeriodRepository;
-
-        public CoursePeriodAppService(
-            GeneralRepository<CoursePeriod> coursePeriodRepository)
+        public class CoursePeriodAppService : ICoursePeriodAppService
         {
-            _coursePeriodRepository = coursePeriodRepository;
-        }
+            private readonly GeneralRepository<CoursePeriod>
+                _coursePeriodRepository;
 
-        public async Task<CursoPeriodoDto> AddCoursePeriod(
-            CursoPeriodoDto cursoPeriodo)
-        {
-            var coursePeriods = await _coursePeriodRepository.GetAll();
-
-            // Validar que el curso no esté registrado
-            // nuevamente en el mismo período
-            var coursePeriodExists = coursePeriods.Any(x =>
-                x.IdCurso == cursoPeriodo.IdCurso &&
-                x.IdPeriodo == cursoPeriodo.IdPeriodo &&
-                x.IsDelete == '0');
-
-            if (coursePeriodExists)
+            public CoursePeriodAppService(
+                GeneralRepository<CoursePeriod> coursePeriodRepository)
             {
-                throw new Exception(
-                    "El curso ya está registrado en este período académico.");
+                _coursePeriodRepository = coursePeriodRepository;
             }
 
-            // Crear entidad
-            var newCoursePeriod = new CoursePeriod
+            public async Task<CursoPeriodoDto> AddCoursePeriod(
+                CursoPeriodoDto cursoPeriodo)
             {
-                IdCurso = cursoPeriodo.IdCurso,
-                IdPeriodo = cursoPeriodo.IdPeriodo,
-                Activo = cursoPeriodo.Activo
-            };
+                var coursePeriods =
+                    await _coursePeriodRepository.GetAll();
 
-            // Guardar
-            newCoursePeriod = await _coursePeriodRepository.Add(
-                newCoursePeriod);
+                // Validar que el curso no esté registrado
+                // nuevamente en el mismo período
+                var coursePeriodExists = coursePeriods.Any(x =>
+                    x.IdCurso == cursoPeriodo.IdCurso &&
+                    x.IdPeriodo == cursoPeriodo.IdPeriodo &&
+                    x.IsDelete == '0');
 
-            // Retornar DTO
-            return new CursoPeriodoDto
-            {
-                IdCurso = newCoursePeriod.IdCurso,
-                IdPeriodo = newCoursePeriod.IdPeriodo,
-                Activo = newCoursePeriod.Activo
-            };
-        }
-
-        public async Task<List<CursoPeriodoDto>> GetAllCoursePeriod()
-        {
-            var coursePeriods = await _coursePeriodRepository.GetAll();
-
-            return coursePeriods
-                .Where(x => x.IsDelete == '0')
-                .Select(x => new CursoPeriodoDto
+                if (coursePeriodExists)
                 {
-                    IdCurso = x.IdCurso,
-                    IdPeriodo = x.IdPeriodo,
-                    Activo = x.Activo
-                })
-                .ToList();
-        }
+                    throw new Exception(
+                        "El curso ya está registrado en este período académico.");
+                }
 
-        public async Task<CursoPeriodoDto> GetCoursePeriodById(int id)
-        {
-            var coursePeriod = await _coursePeriodRepository.GetById(id);
+                var newCoursePeriod = new CoursePeriod
+                {
+                    IdCurso = cursoPeriodo.IdCurso,
+                    IdPeriodo = cursoPeriodo.IdPeriodo,
+                    Activo = cursoPeriodo.Activo,
+                    IsDelete = '0'
+                };
 
-            if (coursePeriod == null || coursePeriod.IsDelete == '1')
-            {
-                return null;
+                newCoursePeriod =
+                    await _coursePeriodRepository.Add(newCoursePeriod);
+
+                return new CursoPeriodoDto
+                {
+                    IdCursoPeriodo = newCoursePeriod.IdCursoPeriodo,
+                    IdCurso = newCoursePeriod.IdCurso,
+                    IdPeriodo = newCoursePeriod.IdPeriodo,
+                    Activo = newCoursePeriod.Activo
+                };
             }
 
-            return new CursoPeriodoDto
+            public async Task<List<CursoPeriodoDto>>
+                GetAllCoursePeriod()
             {
-                IdCurso = coursePeriod.IdCurso,
-                IdPeriodo = coursePeriod.IdPeriodo,
-                Activo = coursePeriod.Activo
-            };
-        }
+                var coursePeriods =
+                    await _coursePeriodRepository.GetAll();
 
-        public async Task<CursoPeriodoDto> UpdateCoursePeriod(
-            CursoPeriodoDto cursoPeriodo)
-        {
-            var coursePeriods = await _coursePeriodRepository.GetAll();
-
-            var existingCoursePeriod = coursePeriods.FirstOrDefault(x =>
-                x.IdCurso == cursoPeriodo.IdCurso &&
-                x.IdPeriodo == cursoPeriodo.IdPeriodo &&
-                x.IsDelete == '0');
-
-            if (existingCoursePeriod == null)
-            {
-                return null;
+                return coursePeriods
+                    .Where(x => x.IsDelete == '0')
+                    .Select(x => new CursoPeriodoDto
+                    {
+                        IdCursoPeriodo = x.IdCursoPeriodo,
+                        IdCurso = x.IdCurso,
+                        IdPeriodo = x.IdPeriodo,
+                        Activo = x.Activo
+                    })
+                    .ToList();
             }
 
-            // Actualizar únicamente el estado
-            existingCoursePeriod.Activo = cursoPeriodo.Activo;
-
-            await _coursePeriodRepository.Update(existingCoursePeriod);
-
-            return new CursoPeriodoDto
+            public async Task<CursoPeriodoDto>
+                GetCoursePeriodById(int id)
             {
-                IdCurso = existingCoursePeriod.IdCurso,
-                IdPeriodo = existingCoursePeriod.IdPeriodo,
-                Activo = existingCoursePeriod.Activo
-            };
-        }
+                var coursePeriod =
+                    await _coursePeriodRepository.GetById(id);
 
-        public async Task<CursoPeriodoDto> DeleteCoursePeriod(
-            CursoPeriodoDto cursoPeriodo)
-        {
-            var coursePeriods = await _coursePeriodRepository.GetAll();
+                if (coursePeriod == null ||
+                    coursePeriod.IsDelete == '1')
+                {
+                    return null;
+                }
 
-            var existingCoursePeriod = coursePeriods.FirstOrDefault(x =>
-                x.IdCurso == cursoPeriodo.IdCurso &&
-                x.IdPeriodo == cursoPeriodo.IdPeriodo &&
-                x.IsDelete == '0');
-
-            if (existingCoursePeriod == null)
-            {
-                return null;
+                return new CursoPeriodoDto
+                {
+                    IdCursoPeriodo = coursePeriod.IdCursoPeriodo,
+                    IdCurso = coursePeriod.IdCurso,
+                    IdPeriodo = coursePeriod.IdPeriodo,
+                    Activo = coursePeriod.Activo
+                };
             }
 
-            // Eliminación lógica
-            existingCoursePeriod.IsDelete = '1';
-            existingCoursePeriod.Activo = '0';
-
-            await _coursePeriodRepository.Update(existingCoursePeriod);
-
-            return new CursoPeriodoDto
+            public async Task<CursoPeriodoDto>
+                UpdateCoursePeriod(
+                    CursoPeriodoDto cursoPeriodo)
             {
-                IdCurso = existingCoursePeriod.IdCurso,
-                IdPeriodo = existingCoursePeriod.IdPeriodo,
-                Activo = existingCoursePeriod.Activo
-            };
-        }
+                var existingCoursePeriod =
+                    await _coursePeriodRepository.GetById(
+                        cursoPeriodo.IdCursoPeriodo);
 
-        public async Task<List<CursoPeriodoDto>> GetCoursePeriodNotDeleted()
-        {
-            return await GetAllCoursePeriod();
+                if (existingCoursePeriod == null ||
+                    existingCoursePeriod.IsDelete == '1')
+                {
+                    return null;
+                }
+
+                // Actualmente solo actualizamos el estado
+                existingCoursePeriod.Activo =
+                    cursoPeriodo.Activo;
+
+                await _coursePeriodRepository.Update(
+                    existingCoursePeriod);
+
+                return new CursoPeriodoDto
+                {
+                    IdCursoPeriodo =
+                        existingCoursePeriod.IdCursoPeriodo,
+
+                    IdCurso =
+                        existingCoursePeriod.IdCurso,
+
+                    IdPeriodo =
+                        existingCoursePeriod.IdPeriodo,
+
+                    Activo =
+                        existingCoursePeriod.Activo
+                };
+            }
+
+            public async Task<CursoPeriodoDto>
+                DeleteCoursePeriod(
+                    CursoPeriodoDto cursoPeriodo)
+            {
+                var existingCoursePeriod =
+                    await _coursePeriodRepository.GetById(
+                        cursoPeriodo.IdCursoPeriodo);
+
+                if (existingCoursePeriod == null ||
+                    existingCoursePeriod.IsDelete == '1')
+                {
+                    return null;
+                }
+
+                // Eliminación lógica
+                existingCoursePeriod.IsDelete = '1';
+                existingCoursePeriod.Activo = '0';
+
+                await _coursePeriodRepository.Update(
+                    existingCoursePeriod);
+
+                return new CursoPeriodoDto
+                {
+                    IdCursoPeriodo =
+                        existingCoursePeriod.IdCursoPeriodo,
+
+                    IdCurso =
+                        existingCoursePeriod.IdCurso,
+
+                    IdPeriodo =
+                        existingCoursePeriod.IdPeriodo,
+
+                    Activo =
+                        existingCoursePeriod.Activo
+                };
+            }
+
+            public async Task<List<CursoPeriodoDto>>
+                GetCoursePeriodNotDeleted()
+            {
+                return await GetAllCoursePeriod();
+            }
         }
     }
-
-
 }

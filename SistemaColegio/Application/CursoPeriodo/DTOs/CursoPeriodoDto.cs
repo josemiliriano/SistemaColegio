@@ -6,6 +6,7 @@ namespace Application.CursoPeriodo.DTOs
 {
     public class CursoPeriodoDto
     {
+        public int IdCursoPeriodo { get; set; }
         public int IdCurso { get; set; }
         public int IdPeriodo { get; set; }
         public char Activo { get; set; }

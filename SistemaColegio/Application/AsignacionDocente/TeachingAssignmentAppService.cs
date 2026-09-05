@@ -7,27 +7,34 @@ using System.Text;
 
 namespace Application.AsignacionDocente
 {
-    public class TeachingAssignmentAppService : ITeachingAssignmentAppService
+    public class TeachingAssignmentAppService: ITeachingAssignmentAppService
     {
         private readonly GeneralRepository<TeachingAssignment> _teachingAssignmentRepository;
+
         private readonly GeneralRepository<ProfessorSubject> _professorSubjectRepository;
+
         private readonly GeneralRepository<SessionPeriod> _sessionPeriodRepository;
+
         private readonly GeneralRepository<CourseSubject> _courseSubjectRepository;
 
-        public TeachingAssignmentAppService(
-            GeneralRepository<TeachingAssignment> teachingAssignmentRepository,
-            GeneralRepository<ProfessorSubject> professorSubjectRepository,
-            GeneralRepository<SessionPeriod> sessionPeriodRepository,
-            GeneralRepository<CourseSubject> courseSubjectRepository)
+        public TeachingAssignmentAppService(GeneralRepository<TeachingAssignment>teachingAssignmentRepository,
+            GeneralRepository<ProfessorSubject>
+                professorSubjectRepository,
+            GeneralRepository<SessionPeriod>
+                sessionPeriodRepository,
+            GeneralRepository<CourseSubject>
+                courseSubjectRepository)
         {
             _teachingAssignmentRepository = teachingAssignmentRepository;
+
             _professorSubjectRepository = professorSubjectRepository;
+
             _sessionPeriodRepository = sessionPeriodRepository;
+
             _courseSubjectRepository = courseSubjectRepository;
         }
 
-        public async Task<TeachingAssignmentDto> AddTeachingAssignment(
-            TeachingAssignmentDto teachingAssignment)
+        public async Task<TeachingAssignmentDto> AddTeachingAssignment(TeachingAssignmentDto teachingAssignment)
         {
             // Buscar la relación Profesor-Materia
             var professorSubjects =
@@ -35,10 +42,14 @@ namespace Application.AsignacionDocente
                     x => x.Professor,
                     x => x.Subject);
 
-            var professorSubject = professorSubjects.FirstOrDefault(x =>
-                x.IdProfesorMateria == teachingAssignment.IdProfesorMateria &&
-                x.IsDelete == '0' &&
-                x.Activo == '1');
+            var professorSubject =
+                professorSubjects.FirstOrDefault(x =>
+                    x.IdProfesorMateria ==
+                        teachingAssignment.IdProfesorMateria &&
+
+                    x.IsDelete == '0' &&
+
+                    x.Activo == '1');
 
             if (professorSubject == null)
             {
@@ -53,10 +64,14 @@ namespace Application.AsignacionDocente
                     x => x.Period,
                     x => x.Classroom);
 
-            var sessionPeriod = sessionPeriods.FirstOrDefault(x =>
-                x.IdSessionPeriod == teachingAssignment.IdSessionPeriod &&
-                x.IsDelete == '0' &&
-                x.Activo == '1');
+            var sessionPeriod =
+                sessionPeriods.FirstOrDefault(x =>
+                    x.IdSessionPeriod ==
+                        teachingAssignment.IdSessionPeriod &&
+
+                    x.IsDelete == '0' &&
+
+                    x.Activo == '1');
 
             if (sessionPeriod == null)
             {
@@ -65,16 +80,23 @@ namespace Application.AsignacionDocente
             }
 
             // Obtener el curso de la sección
-            int idCurso = sessionPeriod.Session.IdCurso;
+            int idCurso =
+                sessionPeriod.Session.IdCurso;
 
             // Verificar que la materia pertenezca al curso
-            var courseSubjects = await _courseSubjectRepository.GetAll();
+            var courseSubjects =
+                await _courseSubjectRepository.GetAll();
 
-            var courseSubjectExists = courseSubjects.Any(x =>
-                x.IdCurso == idCurso &&
-                x.IdMateria == professorSubject.IdMateria &&
-                x.IsDelete == '0' &&
-                x.Activo == '1');
+            var courseSubjectExists =
+                courseSubjects.Any(x =>
+                    x.IdCurso == idCurso &&
+
+                    x.IdMateria ==
+                        professorSubject.IdMateria &&
+
+                    x.IsDelete == '0' &&
+
+                    x.Activo == '1');
 
             if (!courseSubjectExists)
             {
@@ -88,15 +110,19 @@ namespace Application.AsignacionDocente
                     x => x.ProfessorSubject,
                     x => x.SessionPeriod);
 
-            // Verificar que la materia no tenga otro profesor
-            // asignado en la misma sección y período
-            var subjectAlreadyAssigned = teachingAssignments.Any(x =>
-                x.SessionPeriod.IdSessionPeriod ==
-                    teachingAssignment.IdSessionPeriod &&
-                x.ProfessorSubject.IdMateria ==
-                    professorSubject.IdMateria &&
-                x.IsDelete == '0' &&
-                x.Activo == '1');
+            // Verificar que la materia no tenga
+            // otro profesor asignado
+            var subjectAlreadyAssigned =
+                teachingAssignments.Any(x =>
+                    x.SessionPeriod.IdSessionPeriod ==
+                        teachingAssignment.IdSessionPeriod &&
+
+                    x.ProfessorSubject.IdMateria ==
+                        professorSubject.IdMateria &&
+
+                    x.IsDelete == '0' &&
+
+                    x.Activo == '1');
 
             if (subjectAlreadyAssigned)
             {
@@ -105,26 +131,39 @@ namespace Application.AsignacionDocente
             }
 
             // Crear la asignación
-            var newTeachingAssignment = new TeachingAssignment
-            {
-                IdProfesorMateria = teachingAssignment.IdProfesorMateria,
-                IdSessionPeriod = teachingAssignment.IdSessionPeriod,
-                Activo = teachingAssignment.Activo,
-                IsDelete = '0'
-            };
+            var newTeachingAssignment =
+                new TeachingAssignment
+                {
+                    IdProfesorMateria =
+                        teachingAssignment.IdProfesorMateria,
+
+                    IdSessionPeriod =
+                        teachingAssignment.IdSessionPeriod,
+
+                    Activo =
+                        teachingAssignment.Activo,
+
+                    IsDelete = '0'
+                };
 
             newTeachingAssignment =
-                await _teachingAssignmentRepository.Add(
-                    newTeachingAssignment);
+                await _teachingAssignmentRepository
+                    .Add(newTeachingAssignment);
 
             // Retornar DTO
             return new TeachingAssignmentDto
             {
+                IdAsignacionDocente =
+                    newTeachingAssignment
+                        .IdAsignacionDocente,
+
                 IdProfesorMateria =
-                    newTeachingAssignment.IdProfesorMateria,
+                    newTeachingAssignment
+                        .IdProfesorMateria,
 
                 IdSessionPeriod =
-                    newTeachingAssignment.IdSessionPeriod,
+                    newTeachingAssignment
+                        .IdSessionPeriod,
 
                 Activo =
                     newTeachingAssignment.Activo
@@ -141,9 +180,17 @@ namespace Application.AsignacionDocente
                 .Where(x => x.IsDelete == '0')
                 .Select(x => new TeachingAssignmentDto
                 {
-                    IdProfesorMateria = x.IdProfesorMateria,
-                    IdSessionPeriod = x.IdSessionPeriod,
-                    Activo = x.Activo
+                    IdAsignacionDocente =
+                        x.IdAsignacionDocente,
+
+                    IdProfesorMateria =
+                        x.IdProfesorMateria,
+
+                    IdSessionPeriod =
+                        x.IdSessionPeriod,
+
+                    Activo =
+                        x.Activo
                 })
                 .ToList();
         }
@@ -152,7 +199,8 @@ namespace Application.AsignacionDocente
             GetTeachingAssignmentById(int id)
         {
             var teachingAssignment =
-                await _teachingAssignmentRepository.GetById(id);
+                await _teachingAssignmentRepository
+                    .GetById(id);
 
             if (teachingAssignment == null ||
                 teachingAssignment.IsDelete == '1')
@@ -162,11 +210,17 @@ namespace Application.AsignacionDocente
 
             return new TeachingAssignmentDto
             {
+                IdAsignacionDocente =
+                    teachingAssignment
+                        .IdAsignacionDocente,
+
                 IdProfesorMateria =
-                    teachingAssignment.IdProfesorMateria,
+                    teachingAssignment
+                        .IdProfesorMateria,
 
                 IdSessionPeriod =
-                    teachingAssignment.IdSessionPeriod,
+                    teachingAssignment
+                        .IdSessionPeriod,
 
                 Activo =
                     teachingAssignment.Activo
@@ -177,18 +231,14 @@ namespace Application.AsignacionDocente
             UpdateTeachingAssignment(
                 TeachingAssignmentDto teachingAssignment)
         {
-            var teachingAssignments =
-                await _teachingAssignmentRepository.GetAll();
-
             var existingTeachingAssignment =
-                teachingAssignments.FirstOrDefault(x =>
-                    x.IdProfesorMateria ==
-                        teachingAssignment.IdProfesorMateria &&
-                    x.IdSessionPeriod ==
-                        teachingAssignment.IdSessionPeriod &&
-                    x.IsDelete == '0');
+                await _teachingAssignmentRepository
+                    .GetById(
+                        teachingAssignment
+                            .IdAsignacionDocente);
 
-            if (existingTeachingAssignment == null)
+            if (existingTeachingAssignment == null ||
+                existingTeachingAssignment.IsDelete == '1')
             {
                 return null;
             }
@@ -197,16 +247,22 @@ namespace Application.AsignacionDocente
             existingTeachingAssignment.Activo =
                 teachingAssignment.Activo;
 
-            await _teachingAssignmentRepository.Update(
-                existingTeachingAssignment);
+            await _teachingAssignmentRepository
+                .Update(existingTeachingAssignment);
 
             return new TeachingAssignmentDto
             {
+                IdAsignacionDocente =
+                    existingTeachingAssignment
+                        .IdAsignacionDocente,
+
                 IdProfesorMateria =
-                    existingTeachingAssignment.IdProfesorMateria,
+                    existingTeachingAssignment
+                        .IdProfesorMateria,
 
                 IdSessionPeriod =
-                    existingTeachingAssignment.IdSessionPeriod,
+                    existingTeachingAssignment
+                        .IdSessionPeriod,
 
                 Activo =
                     existingTeachingAssignment.Activo
@@ -217,18 +273,14 @@ namespace Application.AsignacionDocente
             DeleteTeachingAssignment(
                 TeachingAssignmentDto teachingAssignment)
         {
-            var teachingAssignments =
-                await _teachingAssignmentRepository.GetAll();
-
             var existingTeachingAssignment =
-                teachingAssignments.FirstOrDefault(x =>
-                    x.IdProfesorMateria ==
-                        teachingAssignment.IdProfesorMateria &&
-                    x.IdSessionPeriod ==
-                        teachingAssignment.IdSessionPeriod &&
-                    x.IsDelete == '0');
+                await _teachingAssignmentRepository
+                    .GetById(
+                        teachingAssignment
+                            .IdAsignacionDocente);
 
-            if (existingTeachingAssignment == null)
+            if (existingTeachingAssignment == null ||
+                existingTeachingAssignment.IsDelete == '1')
             {
                 return null;
             }
@@ -237,16 +289,22 @@ namespace Application.AsignacionDocente
             existingTeachingAssignment.IsDelete = '1';
             existingTeachingAssignment.Activo = '0';
 
-            await _teachingAssignmentRepository.Update(
-                existingTeachingAssignment);
+            await _teachingAssignmentRepository
+                .Update(existingTeachingAssignment);
 
             return new TeachingAssignmentDto
             {
+                IdAsignacionDocente =
+                    existingTeachingAssignment
+                        .IdAsignacionDocente,
+
                 IdProfesorMateria =
-                    existingTeachingAssignment.IdProfesorMateria,
+                    existingTeachingAssignment
+                        .IdProfesorMateria,
 
                 IdSessionPeriod =
-                    existingTeachingAssignment.IdSessionPeriod,
+                    existingTeachingAssignment
+                        .IdSessionPeriod,
 
                 Activo =
                     existingTeachingAssignment.Activo
@@ -259,5 +317,4 @@ namespace Application.AsignacionDocente
             return await GetAllTeachingAssignment();
         }
     }
-
 }
