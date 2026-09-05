@@ -17,7 +17,11 @@ using Application.Seccion;
 using Application.Usuario;
 using Infraestructure.Data;
 using Infraestructure.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +33,28 @@ builder.Services.AddDbContext<MyDataContext>(options =>
 
 // MVC
 builder.Services.AddControllersWithViews();
+
+// Autenticación JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    builder.Configuration["Jwt:Key"]!
+                )
+            )
+        };
+    });
 
 // Repository
 builder.Services.AddScoped(typeof(GeneralRepository<>));
@@ -53,6 +79,26 @@ builder.Services.AddScoped<ITeachingAssignmentAppService, TeachingAssignmentAppS
 
 // Autenticación
 builder.Services.AddScoped<IAuthAppService, AuthAppService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+
+// Swagger
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Description = "Ingrese el token JWT."
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
+        });
+});
 
 var app = builder.Build();
 
@@ -63,6 +109,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Swagger
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseHttpsRedirection();
 
 // Archivos estáticos: HTML, CSS, JS, imágenes, etc.
@@ -70,9 +120,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
-app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}"
-);
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

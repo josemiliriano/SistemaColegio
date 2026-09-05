@@ -16,7 +16,7 @@ namespace SistemaColegio.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)
             {
@@ -27,7 +27,10 @@ namespace SistemaColegio.Controllers
 
             if (usuario == null)
             {
-                return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos."});
+                return Unauthorized(new
+                {
+                    mensaje = "Usuario o contraseña incorrectos."
+                });
             }
 
             return Ok(usuario);

@@ -1,10 +1,14 @@
 ﻿using Application.Usuario;
 using Application.Usuario.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class UserController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]    
+    public class UserController : ControllerBase
     {
         private readonly IUserAppService _userAppService;
 
@@ -13,78 +17,65 @@ namespace SistemaColegio.Controllers
             _userAppService = userAppService;
         }
 
-        // GET: User
-        public async Task<IActionResult> Index()
+        // GET: api/User
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var users = await _userAppService.GetAllUser();
 
-            return View(users);
+            return Ok(users);
         }
 
-        // GET: User/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/User/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var user = await _userAppService.GetUserById(id);
 
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "El usuario no existe."
+                });
             }
 
-            return View(user);
+            return Ok(user);
         }
 
-        // GET: User/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: User/Create
+        // POST: api/User
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateUserDto user)
+        public async Task<IActionResult> Create([FromBody] CreateUserDto user)
         {
             if (!ModelState.IsValid)
             {
-                return View(user);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _userAppService.AddUser(user);
+                var newUser = await _userAppService.AddUser(user);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newUser);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(user);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: User/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var user = await _userAppService.GetUserById(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return View(user);
-        }
-
-        // POST: User/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, UserDto user)
+        // PUT: api/User/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
+            int id,
+            [FromBody] UserDto user)
         {
             if (!ModelState.IsValid)
             {
-                return View(user);
+                return BadRequest(ModelState);
             }
 
             try
@@ -93,22 +84,22 @@ namespace SistemaColegio.Controllers
 
                 if (updatedUser == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "El usuario no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedUser);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(user);
+                return BadRequest(new {mensaje = ex.Message});
             }
         }
 
-        // POST: User/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/User/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -117,16 +108,49 @@ namespace SistemaColegio.Controllers
 
                 if (deletedUser == null)
                 {
-                    return NotFound();
+                    return NotFound(new{mensaje = "El usuario no existe."});
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedUser);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
 
-                return RedirectToAction(nameof(Index));
+        // PUT: api/User/5/password
+        [HttpPut("{id}/password")]
+        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordDto passwordDto)
+        {
+            try
+            {
+                var result = await _userAppService.ChangePassword(
+                    id,
+                    passwordDto);
+
+                if (!result)
+                {
+                    return BadRequest(new
+                    {
+                        mensaje = "La contraseña actual es incorrecta o el usuario no está activo."
+                    });
+                }
+
+                return Ok(new
+                {
+                    mensaje = "La contraseña fue cambiada correctamente."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
     }
