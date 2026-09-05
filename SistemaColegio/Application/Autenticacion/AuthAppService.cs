@@ -2,32 +2,28 @@
 using Application.Usuario.DTOs;
 using Domain.Entities;
 using Infraestructure.Repository;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Application.Autenticacion
 {
     public class AuthAppService : IAuthAppService
     {
         private readonly GeneralRepository<CDUser> _userRepository;
+        private readonly IJwtService _jwtService;
 
-        public AuthAppService(
-            GeneralRepository<CDUser> userRepository)
+        public AuthAppService(GeneralRepository<CDUser> userRepository, IJwtService jwtService)
         {
             _userRepository = userRepository;
+            _jwtService = jwtService;
         }
 
-        public async Task<UserDto?> Login(LoginDto loginDto)
+        public async Task<LoginResponseDto?> Login(LoginDto loginDto)
         {
-            var users = await _userRepository.GetAllInclude(
+            var user = await _userRepository.GetFirstOrDefaultInclude(
+                u => u.NombreUsuario == loginDto.NombreUsuario &&
+                     u.IsDelete == '0' &&
+                     u.Activo == '1',
                 u => u.Persona,
                 u => u.Rol);
-
-            var user = users.FirstOrDefault(u =>
-                u.NombreUsuario == loginDto.NombreUsuario &&
-                u.IsDelete == '0' &&
-                u.Activo == '1');
 
             if (user == null)
             {
@@ -43,18 +39,19 @@ namespace Application.Autenticacion
                 return null;
             }
 
-            return new UserDto
+            var token = _jwtService.GenerateToken(user);
+
+            return new LoginResponseDto
             {
+                Token = token,
+
+                IdUsuario = user.IdUsuario,
+                IdRol = user.IdRol,
+
                 Nombres = user.Persona.Nombres,
                 Apellidos = user.Persona.Apellidos,
-                FechaNacimiento = user.Persona.FechaNacimiento,
-                Telefono = user.Persona.Telefono,
-                Direccion = user.Persona.Direccion,
-                Correo = user.Persona.Correo,
 
                 NombreUsuario = user.NombreUsuario,
-                Activo = user.Activo,
-
                 NombreRol = user.Rol.NombreRol
             };
         }

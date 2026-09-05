@@ -2,25 +2,17 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Application.Usuario.DTOs
+namespace Application.Autenticacion.DTOs
 {
-    public class UserDto
+    public class LoginResponseDto
     {
+        public string Token { get; set; }
         public int IdUsuario { get; set; }
         public int IdRol { get; set; }
         public string Nombres { get; set; }
         public string Apellidos { get; set; }
-        public DateTime FechaNacimiento { get; set; }
-        public string Telefono { get; set; }
-        public string Direccion { get; set; }
-        public string Correo { get; set; }
 
-        // Datos de CDUser
         public string NombreUsuario { get; set; }
-        public char Activo { get; set; }
-
-        // Datos del Role
         public string NombreRol { get; set; }
     }
 }
-

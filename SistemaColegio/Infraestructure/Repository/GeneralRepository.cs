@@ -1,10 +1,5 @@
 ﻿using Infraestructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace Infraestructure.Repository
@@ -31,7 +26,7 @@ namespace Infraestructure.Repository
             return await _context.Set<T>().ToListAsync();
         }
 
-        public async Task<List<T>> GetAllInclude(params Expression<Func<T, object>>[] includes)
+        public async Task<List<T>> GetAllInclude( params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _context.Set<T>();
 
@@ -41,6 +36,18 @@ namespace Infraestructure.Repository
             }
 
             return await query.ToListAsync();
+        }
+
+        public async Task<T?> GetFirstOrDefaultInclude(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _context.Set<T>();
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.FirstOrDefaultAsync(predicate);
         }
 
         public async Task<T> GetById(int id)
@@ -63,16 +70,5 @@ namespace Infraestructure.Repository
 
             return entity;
         }
-    }    
-   
+    }
 }
-
-/*
- * var movements = await _generalRepository
-    .GetAllInclude(
-        m => m.Product,
-        m => m.Provider,
-        m => m.MovementType
-    );
- 
- */

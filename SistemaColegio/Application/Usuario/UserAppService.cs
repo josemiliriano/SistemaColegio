@@ -80,6 +80,9 @@ public class UserAppService : IUserAppService
         // Retornar DTO sin contraseña
         return new UserDto
         {
+            IdUsuario = newUser.IdUsuario,
+            IdRol = newUser.IdRol,
+
             Nombres = person.Nombres,
             Apellidos = person.Apellidos,
             FechaNacimiento = person.FechaNacimiento,
@@ -100,10 +103,10 @@ public class UserAppService : IUserAppService
             u => u.Persona,
             u => u.Rol);
 
-        return users
-            .Where(u => u.IsDelete == '0')
-            .Select(u => new UserDto
-            {
+        return users.Where(u => u.IsDelete == '0').Select(u => new UserDto {
+                IdUsuario = u.IdUsuario,
+                IdRol = u.IdRol,
+
                 Nombres = u.Persona.Nombres,
                 Apellidos = u.Persona.Apellidos,
                 FechaNacimiento = u.Persona.FechaNacimiento,
