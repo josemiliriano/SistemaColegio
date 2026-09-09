@@ -1,9 +1,7 @@
 ﻿using Application.Profesor.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Application.Profesor
 {
@@ -13,17 +11,20 @@ namespace Application.Profesor
         private readonly GeneralRepository<Person> _personRepository;
         private readonly GeneralRepository<CDUser> _userRepository;
         private readonly GeneralRepository<Role> _roleRepository;
+        private readonly MyDataContext _context;
 
         public ProfessorAppService(
             GeneralRepository<Professor> professorRepository,
             GeneralRepository<Person> personRepository,
             GeneralRepository<CDUser> userRepository,
-            GeneralRepository<Role> roleRepository)
+            GeneralRepository<Role> roleRepository,
+            MyDataContext context)
         {
             _professorRepository = professorRepository;
             _personRepository = personRepository;
             _userRepository = userRepository;
             _roleRepository = roleRepository;
+            _context = context;
         }
 
         public async Task<ProfesorDto> AddProfessor(CreateProfesorDto professor)
@@ -65,60 +66,79 @@ namespace Application.Profesor
                 throw new Exception("No existe el rol Profesor.");
             }
 
-            // Crear Person
-            var person = new Person
+            // Iniciar transacción
+            await using var transaction = await _context.BeginTransactionAsync();
+
+            try
             {
-                Nombres = professor.Nombres,
-                Apellidos = professor.Apellidos,
-                FechaNacimiento = professor.FechaNacimiento,
-                Telefono = professor.Telefono,
-                Direccion = professor.Direccion,
-                Correo = professor.Correo
-            };
+                // Crear Person
+                var person = new Person
+                {
+                    Nombres = professor.Nombres,
+                    Apellidos = professor.Apellidos,
+                    FechaNacimiento = professor.FechaNacimiento,
+                    Telefono = professor.Telefono,
+                    Direccion = professor.Direccion,
+                    Correo = professor.Correo
+                };
 
-            person = await _personRepository.Add(person);
+                await _personRepository.Add(person);
 
-            // Crear Professor
-            var newProfessor = new Professor
+                // Crear Professor
+                var newProfessor = new Professor
+                {
+                    Persona = person,
+                    Cedula = professor.Cedula,
+                    Especialidad = professor.Especialidad,
+                    Activo = professor.Activo,
+                    IsDelete = '0'
+                };
+
+                await _professorRepository.Add(newProfessor);
+
+                // Crear User
+                var newUser = new CDUser
+                {
+                    Persona = person,
+                    IdRol = role.IdRol,
+                    NombreUsuario = professor.NombreUsuario,
+                    Password = BCrypt.Net.BCrypt.HashPassword(professor.Password),
+                    Activo = professor.Activo,
+                    IsDelete = '0'
+                };
+
+                await _userRepository.Add(newUser);
+
+                // Guardar todas las operaciones
+                await _context.SaveChangesAsync();
+
+                // Confirmar transacción
+                await transaction.CommitAsync();
+
+                // Retornar DTO
+                return new ProfesorDto
+                {
+                    Nombres = person.Nombres,
+                    Apellidos = person.Apellidos,
+                    FechaNacimiento = person.FechaNacimiento,
+                    Telefono = person.Telefono,
+                    Direccion = person.Direccion,
+                    Correo = person.Correo,
+
+                    Cedula = newProfessor.Cedula,
+                    Especialidad = newProfessor.Especialidad,
+                    Activo = newProfessor.Activo,
+
+                    NombreUsuario = newUser.NombreUsuario
+                };
+            }
+            catch
             {
-                IdPersona = person.IdPersona,
-                Cedula = professor.Cedula,
-                Especialidad = professor.Especialidad,
-                Activo = professor.Activo,
-                IsDelete = '0'
-            };
+                // Deshacer todas las operaciones
+                await transaction.RollbackAsync();
 
-            newProfessor = await _professorRepository.Add(newProfessor);
-
-            // Crear User
-            var newUser = new CDUser
-            {
-                IdPersona = person.IdPersona,
-                IdRol = role.IdRol,
-                NombreUsuario = professor.NombreUsuario,
-                Password = BCrypt.Net.BCrypt.HashPassword(professor.Password),
-                Activo = professor.Activo,
-                IsDelete = '0'
-            };
-
-            newUser = await _userRepository.Add(newUser);
-
-            // Retornar DTO
-            return new ProfesorDto
-            {
-                Nombres = person.Nombres,
-                Apellidos = person.Apellidos,
-                FechaNacimiento = person.FechaNacimiento,
-                Telefono = person.Telefono,
-                Direccion = person.Direccion,
-                Correo = person.Correo,
-
-                Cedula = newProfessor.Cedula,
-                Especialidad = newProfessor.Especialidad,
-                Activo = newProfessor.Activo,
-
-                NombreUsuario = newUser.NombreUsuario                
-            };
+                throw;
+            }
         }
 
         public async Task<List<ProfesorDto>> GetAllProfessor()
@@ -170,7 +190,7 @@ namespace Application.Profesor
             };
         }
 
-        public async Task<ProfesorDto> UpdateProfessor(int idProfesor,ProfesorDto professor)
+        public async Task<ProfesorDto> UpdateProfessor(int idProfesor, ProfesorDto professor)
         {
             var professors = await _professorRepository.GetAllInclude(
                 p => p.Persona);
@@ -195,37 +215,55 @@ namespace Application.Profesor
                 throw new Exception("La cédula ya está registrada.");
             }
 
-            // Actualizar datos de Person
-            existingProfessor.Persona.Nombres = professor.Nombres;
-            existingProfessor.Persona.Apellidos = professor.Apellidos;
-            existingProfessor.Persona.FechaNacimiento = professor.FechaNacimiento;
-            existingProfessor.Persona.Telefono = professor.Telefono;
-            existingProfessor.Persona.Direccion = professor.Direccion;
-            existingProfessor.Persona.Correo = professor.Correo;
+            // Iniciar transacción
+            await using var transaction = await _context.BeginTransactionAsync();
 
-            // Actualizar datos de Professor
-            existingProfessor.Cedula = professor.Cedula;
-            existingProfessor.Especialidad = professor.Especialidad;
-            existingProfessor.Activo = professor.Activo;
-
-            // Guardar cambios
-            await _personRepository.Update(existingProfessor.Persona);
-            await _professorRepository.Update(existingProfessor);
-
-            // Retornar información actualizada
-            return new ProfesorDto
+            try
             {
-                Nombres = existingProfessor.Persona.Nombres,
-                Apellidos = existingProfessor.Persona.Apellidos,
-                FechaNacimiento = existingProfessor.Persona.FechaNacimiento,
-                Telefono = existingProfessor.Persona.Telefono,
-                Direccion = existingProfessor.Persona.Direccion,
-                Correo = existingProfessor.Persona.Correo,
+                // Actualizar datos de Person
+                existingProfessor.Persona.Nombres = professor.Nombres;
+                existingProfessor.Persona.Apellidos = professor.Apellidos;
+                existingProfessor.Persona.FechaNacimiento = professor.FechaNacimiento;
+                existingProfessor.Persona.Telefono = professor.Telefono;
+                existingProfessor.Persona.Direccion = professor.Direccion;
+                existingProfessor.Persona.Correo = professor.Correo;
 
-                Cedula = existingProfessor.Cedula,
-                Especialidad = existingProfessor.Especialidad,
-                Activo = existingProfessor.Activo                
-            };
+                // Actualizar datos de Professor
+                existingProfessor.Cedula = professor.Cedula;
+                existingProfessor.Especialidad = professor.Especialidad;
+                existingProfessor.Activo = professor.Activo;
+
+                // Marcar entidades como modificadas
+                await _personRepository.Update(existingProfessor.Persona);
+                await _professorRepository.Update(existingProfessor);
+
+                // Guardar cambios
+                await _context.SaveChangesAsync();
+
+                // Confirmar transacción
+                await transaction.CommitAsync();
+
+                // Retornar información actualizada
+                return new ProfesorDto
+                {
+                    Nombres = existingProfessor.Persona.Nombres,
+                    Apellidos = existingProfessor.Persona.Apellidos,
+                    FechaNacimiento = existingProfessor.Persona.FechaNacimiento,
+                    Telefono = existingProfessor.Persona.Telefono,
+                    Direccion = existingProfessor.Persona.Direccion,
+                    Correo = existingProfessor.Persona.Correo,
+
+                    Cedula = existingProfessor.Cedula,
+                    Especialidad = existingProfessor.Especialidad,
+                    Activo = existingProfessor.Activo
+                };
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+
+                throw;
+            }
         }
 
         public async Task<ProfesorDto> DeleteProfessor(int idProfesor)
@@ -237,32 +275,52 @@ namespace Application.Profesor
                 return null;
             }
 
-            // Eliminación lógica del profesor
-            professor.IsDelete = '1';
-            professor.Activo = '0';
+            // Iniciar transacción
+            await using var transaction = await _context.BeginTransactionAsync();
 
-            await _professorRepository.Update(professor);
-
-            // Buscar usuario relacionado
-            var users = await _userRepository.GetAll();
-
-            var user = users.FirstOrDefault(u => u.IdPersona == professor.IdPersona && u.IsDelete == '0');
-
-            if (user != null)
+            try
             {
-                // Desactivar y eliminar lógicamente el usuario
-                user.IsDelete = '1';
-                user.Activo = '0';
+                // Eliminación lógica del profesor
+                professor.IsDelete = '1';
+                professor.Activo = '0';
 
-                await _userRepository.Update(user);
+                await _professorRepository.Update(professor);
+
+                // Buscar usuario relacionado
+                var users = await _userRepository.GetAll();
+
+                var user = users.FirstOrDefault(u =>
+                    u.IdPersona == professor.IdPersona &&
+                    u.IsDelete == '0');
+
+                if (user != null)
+                {
+                    // Eliminación lógica del usuario
+                    user.IsDelete = '1';
+                    user.Activo = '0';
+
+                    await _userRepository.Update(user);
+                }
+
+                // Guardar cambios
+                await _context.SaveChangesAsync();
+
+                // Confirmar transacción
+                await transaction.CommitAsync();
+
+                return new ProfesorDto
+                {
+                    Cedula = professor.Cedula,
+                    Especialidad = professor.Especialidad,
+                    Activo = professor.Activo
+                };
             }
-
-            return new ProfesorDto
+            catch
             {
-                Cedula = professor.Cedula,
-                Especialidad = professor.Especialidad,
-                Activo = professor.Activo
-            };
+                await transaction.RollbackAsync();
+
+                throw;
+            }
         }
 
         public async Task<List<ProfesorDto>> GetProfessorNotDeleted()

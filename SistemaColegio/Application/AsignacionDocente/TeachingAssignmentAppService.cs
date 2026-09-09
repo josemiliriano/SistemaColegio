@@ -1,5 +1,6 @@
 ﻿using Application.AsignacionDocente.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -16,22 +17,20 @@ namespace Application.AsignacionDocente
         private readonly GeneralRepository<SessionPeriod> _sessionPeriodRepository;
 
         private readonly GeneralRepository<CourseSubject> _courseSubjectRepository;
+        private readonly MyDataContext _context;
 
-        public TeachingAssignmentAppService(GeneralRepository<TeachingAssignment>teachingAssignmentRepository,
-            GeneralRepository<ProfessorSubject>
-                professorSubjectRepository,
-            GeneralRepository<SessionPeriod>
-                sessionPeriodRepository,
-            GeneralRepository<CourseSubject>
-                courseSubjectRepository)
+        public TeachingAssignmentAppService(
+            GeneralRepository<TeachingAssignment> teachingAssignmentRepository,
+            GeneralRepository<ProfessorSubject> professorSubjectRepository,
+            GeneralRepository<SessionPeriod> sessionPeriodRepository,
+            GeneralRepository<CourseSubject> courseSubjectRepository,
+            MyDataContext context)
         {
             _teachingAssignmentRepository = teachingAssignmentRepository;
-
             _professorSubjectRepository = professorSubjectRepository;
-
             _sessionPeriodRepository = sessionPeriodRepository;
-
             _courseSubjectRepository = courseSubjectRepository;
+            _context = context;
         }
 
         public async Task<TeachingAssignmentDto> AddTeachingAssignment(TeachingAssignmentDto teachingAssignment)
@@ -146,9 +145,8 @@ namespace Application.AsignacionDocente
                     IsDelete = '0'
                 };
 
-            newTeachingAssignment =
-                await _teachingAssignmentRepository
-                    .Add(newTeachingAssignment);
+            newTeachingAssignment = await _teachingAssignmentRepository.Add(newTeachingAssignment);
+            await _context.SaveChangesAsync();
 
             // Retornar DTO
             return new TeachingAssignmentDto
@@ -170,8 +168,7 @@ namespace Application.AsignacionDocente
             };
         }
 
-        public async Task<List<TeachingAssignmentDto>>
-            GetAllTeachingAssignment()
+        public async Task<List<TeachingAssignmentDto>>GetAllTeachingAssignment()
         {
             var teachingAssignments =
                 await _teachingAssignmentRepository.GetAll();
@@ -195,8 +192,7 @@ namespace Application.AsignacionDocente
                 .ToList();
         }
 
-        public async Task<TeachingAssignmentDto>
-            GetTeachingAssignmentById(int id)
+        public async Task<TeachingAssignmentDto>GetTeachingAssignmentById(int id)
         {
             var teachingAssignment =
                 await _teachingAssignmentRepository
@@ -227,28 +223,23 @@ namespace Application.AsignacionDocente
             };
         }
 
-        public async Task<TeachingAssignmentDto>
-            UpdateTeachingAssignment(
-                TeachingAssignmentDto teachingAssignment)
+        public async Task<TeachingAssignmentDto>UpdateTeachingAssignment(TeachingAssignmentDto teachingAssignment)
         {
-            var existingTeachingAssignment =
-                await _teachingAssignmentRepository
-                    .GetById(
-                        teachingAssignment
-                            .IdAsignacionDocente);
+            var existingTeachingAssignment = await _teachingAssignmentRepository.GetById(teachingAssignment.IdAsignacionDocente);
 
-            if (existingTeachingAssignment == null ||
-                existingTeachingAssignment.IsDelete == '1')
+            if (existingTeachingAssignment == null || existingTeachingAssignment.IsDelete == '1')
             {
                 return null;
             }
 
             // Actualizar únicamente el estado
-            existingTeachingAssignment.Activo =
-                teachingAssignment.Activo;
+            existingTeachingAssignment.Activo = teachingAssignment.Activo;
 
             await _teachingAssignmentRepository
                 .Update(existingTeachingAssignment);
+
+            // Guardar cambios
+            await _context.SaveChangesAsync();
 
             return new TeachingAssignmentDto
             {
@@ -270,8 +261,8 @@ namespace Application.AsignacionDocente
         }
 
         public async Task<TeachingAssignmentDto>
-            DeleteTeachingAssignment(
-                TeachingAssignmentDto teachingAssignment)
+    DeleteTeachingAssignment(
+        TeachingAssignmentDto teachingAssignment)
         {
             var existingTeachingAssignment =
                 await _teachingAssignmentRepository
@@ -292,27 +283,19 @@ namespace Application.AsignacionDocente
             await _teachingAssignmentRepository
                 .Update(existingTeachingAssignment);
 
+            // Guardar cambios
+            await _context.SaveChangesAsync();
+
             return new TeachingAssignmentDto
             {
-                IdAsignacionDocente =
-                    existingTeachingAssignment
-                        .IdAsignacionDocente,
-
-                IdProfesorMateria =
-                    existingTeachingAssignment
-                        .IdProfesorMateria,
-
-                IdSessionPeriod =
-                    existingTeachingAssignment
-                        .IdSessionPeriod,
-
-                Activo =
-                    existingTeachingAssignment.Activo
+                IdAsignacionDocente = existingTeachingAssignment.IdAsignacionDocente,
+                IdProfesorMateria = existingTeachingAssignment.IdProfesorMateria,
+                IdSessionPeriod = existingTeachingAssignment.IdSessionPeriod,
+                Activo = existingTeachingAssignment.Activo
             };
         }
 
-        public async Task<List<TeachingAssignmentDto>>
-            GetTeachingAssignmentNotDeleted()
+        public async Task<List<TeachingAssignmentDto>>GetTeachingAssignmentNotDeleted()
         {
             return await GetAllTeachingAssignment();
         }

@@ -1,5 +1,6 @@
 ﻿using Application.Materia.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -10,11 +11,14 @@ namespace Application.Materia
     public class SubjectAppService : ISubjectAppService
     {
         private readonly GeneralRepository<Subject> _subjectRepository;
+        private readonly MyDataContext _context;
 
         public SubjectAppService(
-            GeneralRepository<Subject> subjectRepository)
+            GeneralRepository<Subject> subjectRepository,
+            MyDataContext context)
         {
             _subjectRepository = subjectRepository;
+            _context = context;
         }
 
         public async Task<SubjectDto> AddSubject(SubjectDto subject)
@@ -40,7 +44,7 @@ namespace Application.Materia
             };
 
             newSubject = await _subjectRepository.Add(newSubject);
-
+            await _context.SaveChangesAsync();
             return new SubjectDto
             {
                 IdMateria = newSubject.IdMateria,
@@ -82,8 +86,7 @@ namespace Application.Materia
             };
         }
 
-        public async Task<SubjectDto> UpdateSubject(
-            SubjectDto subject)
+        public async Task<SubjectDto> UpdateSubject(SubjectDto subject)
         {
             var subjects = await _subjectRepository.GetAll();
 
@@ -104,14 +107,14 @@ namespace Application.Materia
 
             if (subjectExists)
             {
-                throw new Exception(
-                    "La materia ya existe.");
+                throw new Exception("La materia ya existe.");
             }
 
             existingSubject.Nombre = subject.Nombre;
             existingSubject.Activo = subject.Activo;
 
             await _subjectRepository.Update(existingSubject);
+            await _context.SaveChangesAsync();
 
             return new SubjectDto
             {
@@ -121,8 +124,7 @@ namespace Application.Materia
             };
         }
 
-        public async Task<SubjectDto> DeleteSubject(
-            SubjectDto subject)
+        public async Task<SubjectDto> DeleteSubject(SubjectDto subject)
         {
             var existingSubject =
                 await _subjectRepository.GetById(
@@ -139,7 +141,7 @@ namespace Application.Materia
             existingSubject.Activo = '0';
 
             await _subjectRepository.Update(existingSubject);
-
+            await _context.SaveChangesAsync();
             return new SubjectDto
             {
                 IdMateria = existingSubject.IdMateria,

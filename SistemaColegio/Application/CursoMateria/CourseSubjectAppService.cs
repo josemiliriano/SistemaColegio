@@ -1,5 +1,6 @@
 ﻿using Application.CursoMateria.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -7,22 +8,20 @@ using System.Text;
 
 namespace Application.CursoMateria
     {
-        public class CourseSubjectAppService : ICourseSubjectAppService
+    public class CourseSubjectAppService : ICourseSubjectAppService
         {
-            private readonly GeneralRepository<CourseSubject>
-                _courseSubjectRepository;
+        private readonly GeneralRepository<CourseSubject> _courseSubjectRepository;
+        private readonly MyDataContext _context;
 
-            public CourseSubjectAppService(
-                GeneralRepository<CourseSubject> courseSubjectRepository)
-            {
-                _courseSubjectRepository = courseSubjectRepository;
-            }
+        public CourseSubjectAppService(GeneralRepository<CourseSubject> courseSubjectRepository, MyDataContext context)
+        {
+            _courseSubjectRepository = courseSubjectRepository;
+            _context = context;
+        }
 
-            public async Task<CourseSubjectDto> AddCourseSubject(
-                CourseSubjectDto courseSubject)
-            {
-                var courseSubjects =
-                    await _courseSubjectRepository.GetAll();
+        public async Task<CourseSubjectDto> AddCourseSubject(CourseSubjectDto courseSubject)
+        {
+            var courseSubjects = await _courseSubjectRepository.GetAll();
 
                 // Validar que la materia no esté asignada
                 // nuevamente al mismo curso
@@ -45,10 +44,10 @@ namespace Application.CursoMateria
                     IsDelete = '0'
                 };
 
-                newCourseSubject =
-                    await _courseSubjectRepository.Add(newCourseSubject);
+                newCourseSubject = await _courseSubjectRepository.Add(newCourseSubject);
+            await _context.SaveChangesAsync();
 
-                return new CourseSubjectDto
+            return new CourseSubjectDto
                 {
                     IdCursoMateria =
                         newCourseSubject.IdCursoMateria,
@@ -64,8 +63,7 @@ namespace Application.CursoMateria
                 };
             }
 
-            public async Task<List<CourseSubjectDto>>
-                GetAllCourseSubject()
+            public async Task<List<CourseSubjectDto>> GetAllCourseSubject()
             {
                 var courseSubjects =
                     await _courseSubjectRepository.GetAll();
@@ -117,81 +115,81 @@ namespace Application.CursoMateria
                 };
             }
 
-            public async Task<CourseSubjectDto>
-                UpdateCourseSubject(
-                    CourseSubjectDto courseSubject)
+        public async Task<CourseSubjectDto>
+ UpdateCourseSubject(
+     CourseSubjectDto courseSubject)
+        {
+            var existingCourseSubject =
+                await _courseSubjectRepository.GetById(
+                    courseSubject.IdCursoMateria);
+
+            if (existingCourseSubject == null ||
+                existingCourseSubject.IsDelete == '1')
             {
-                var existingCourseSubject =
-                    await _courseSubjectRepository.GetById(
-                        courseSubject.IdCursoMateria);
-
-                if (existingCourseSubject == null ||
-                    existingCourseSubject.IsDelete == '1')
-                {
-                    return null;
-                }
-
-                // Actualizar únicamente el estado
-                existingCourseSubject.Activo =
-                    courseSubject.Activo;
-
-                await _courseSubjectRepository.Update(
-                    existingCourseSubject);
-
-                return new CourseSubjectDto
-                {
-                    IdCursoMateria =
-                        existingCourseSubject.IdCursoMateria,
-
-                    IdCurso =
-                        existingCourseSubject.IdCurso,
-
-                    IdMateria =
-                        existingCourseSubject.IdMateria,
-
-                    Activo =
-                        existingCourseSubject.Activo
-                };
+                return null;
             }
 
-            public async Task<CourseSubjectDto>
-                DeleteCourseSubject(
-                    CourseSubjectDto courseSubject)
+            // Actualizar únicamente el estado
+            existingCourseSubject.Activo =
+                courseSubject.Activo;
+
+            await _courseSubjectRepository.Update(
+                existingCourseSubject);
+
+            // Guardar cambios
+            await _context.SaveChangesAsync();
+
+            return new CourseSubjectDto
             {
-                var existingCourseSubject =
-                    await _courseSubjectRepository.GetById(
-                        courseSubject.IdCursoMateria);
+                IdCursoMateria = existingCourseSubject.IdCursoMateria,
 
-                if (existingCourseSubject == null ||
-                    existingCourseSubject.IsDelete == '1')
-                {
-                    return null;
-                }
+                IdCurso = existingCourseSubject.IdCurso,
 
-                // Eliminación lógica
-                existingCourseSubject.IsDelete = '1';
-                existingCourseSubject.Activo = '0';
+                IdMateria = existingCourseSubject.IdMateria,
 
-                await _courseSubjectRepository.Update(
-                    existingCourseSubject);
+                Activo = existingCourseSubject.Activo
+            };
+        }
 
-                return new CourseSubjectDto
-                {
-                    IdCursoMateria =
-                        existingCourseSubject.IdCursoMateria,
+        public async Task<CourseSubjectDto>DeleteCourseSubject(CourseSubjectDto courseSubject)
+        {
+            var existingCourseSubject =
+                await _courseSubjectRepository.GetById(
+                    courseSubject.IdCursoMateria);
 
-                    IdCurso =
-                        existingCourseSubject.IdCurso,
-
-                    IdMateria =
-                        existingCourseSubject.IdMateria,
-
-                    Activo =
-                        existingCourseSubject.Activo
-                };
+            if (existingCourseSubject == null ||
+                existingCourseSubject.IsDelete == '1')
+            {
+                return null;
             }
 
-            public async Task<List<CourseSubjectDto>>
+            // Eliminación lógica
+            existingCourseSubject.IsDelete = '1';
+            existingCourseSubject.Activo = '0';
+
+            await _courseSubjectRepository.Update(
+                existingCourseSubject);
+
+            // Guardar cambios
+            await _context.SaveChangesAsync();
+
+            return new CourseSubjectDto
+            {
+                IdCursoMateria =
+                    existingCourseSubject.IdCursoMateria,
+
+                IdCurso =
+                    existingCourseSubject.IdCurso,
+
+                IdMateria =
+                    existingCourseSubject.IdMateria,
+
+                Activo =
+                    existingCourseSubject.Activo
+            };
+        }
+
+        public async Task<List<CourseSubjectDto>>
                 GetCourseSubjectNotDeleted()
             {
                 return await GetAllCourseSubject();

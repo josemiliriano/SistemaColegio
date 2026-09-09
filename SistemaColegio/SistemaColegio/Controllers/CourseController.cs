@@ -1,10 +1,14 @@
 ﻿using Application.Curso;
 using Application.Curso.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class CourseController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class CourseController : ControllerBase
     {
         private readonly ICourseAppService _courseAppService;
 
@@ -13,80 +17,69 @@ namespace SistemaColegio.Controllers
             _courseAppService = courseAppService;
         }
 
-        // GET: Course
-        public async Task<IActionResult> Index()
+        // GET: api/Course
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            var courses = await _courseAppService.GetAllCourse();
+            var courses =
+                await _courseAppService.GetAllCourse();
 
-            return View(courses);
+            return Ok(courses);
         }
 
-        // GET: Course/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/Course/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            var course = await _courseAppService.GetCourseById(id);
+            var course =
+                await _courseAppService.GetCourseById(id);
 
             if (course == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "El curso no existe."
+                });
             }
 
-            return View(course);
+            return Ok(course);
         }
 
-        // GET: Course/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Course/Create
+        // POST: api/Course
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CourseDto course)
+        public async Task<IActionResult> Create(
+            [FromBody] CourseDto course)
         {
             if (!ModelState.IsValid)
             {
-                return View(course);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _courseAppService.AddCourse(course);
+                var newCourse =
+                    await _courseAppService.AddCourse(course);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newCourse);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(course);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: Course/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var course = await _courseAppService.GetCourseById(id);
-
-            if (course == null)
-            {
-                return NotFound();
-            }
-
-            return View(course);
-        }
-
-        // POST: Course/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/Course/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            CourseDto course)
+            [FromBody] CourseDto course)
         {
             if (!ModelState.IsValid)
             {
-                return View(course);
+                return BadRequest(ModelState);
             }
 
             try
@@ -98,22 +91,25 @@ namespace SistemaColegio.Controllers
 
                 if (updatedCourse == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "El curso no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedCourse);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(course);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: Course/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/Course/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -123,19 +119,34 @@ namespace SistemaColegio.Controllers
 
                 if (course == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "El curso no existe."
+                    });
                 }
 
-                await _courseAppService.DeleteCourse(course);
+                var deletedCourse =
+                    await _courseAppService.DeleteCourse(course);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedCourse);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/Course/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var courses =
+                await _courseAppService.GetCourseNotDeleted();
+
+            return Ok(courses);
         }
     }
 }

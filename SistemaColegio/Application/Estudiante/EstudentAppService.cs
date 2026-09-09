@@ -1,5 +1,6 @@
 ﻿using Application.Estudiante.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -11,17 +12,15 @@ namespace Application.Estudiante
     {
         private readonly GeneralRepository<Estudent> _estudentRepository;
         private readonly GeneralRepository<Person> _personRepository;
-
-        public EstudentAppService(
-            GeneralRepository<Estudent> estudentRepository,
-            GeneralRepository<Person> personRepository)
+        private readonly MyDataContext _context;
+        public EstudentAppService(GeneralRepository<Estudent> estudentRepository, GeneralRepository<Person> personRepository, MyDataContext context)
         {
             _estudentRepository = estudentRepository;
             _personRepository = personRepository;
+            _context = context;
         }
 
-        public async Task<EstudentDto> AddEstudent(
-            EstudentDto estudent)
+        public async Task<EstudentDto> AddEstudent(EstudentDto estudent)
         {
             // Verificar que la persona exista
             var person = await _personRepository.GetById(
@@ -55,8 +54,7 @@ namespace Application.Estudiante
 
             if (codeExists)
             {
-                throw new Exception(
-                    "El código de estudiante ya existe.");
+                throw new Exception("El código de estudiante ya existe.");
             }
 
             // Crear estudiante
@@ -68,8 +66,8 @@ namespace Application.Estudiante
                 IsDelete = '0'
             };
 
-            newEstudent =
-                await _estudentRepository.Add(newEstudent);
+            newEstudent = await _estudentRepository.Add(newEstudent);
+            await _context.SaveChangesAsync();
 
             return new EstudentDto
             {
@@ -83,8 +81,7 @@ namespace Application.Estudiante
 
         public async Task<List<EstudentDto>> GetAllEstudent()
         {
-            var students =
-                await _estudentRepository.GetAll();
+            var students = await _estudentRepository.GetAll();
 
             return students
                 .Where(x => x.IsDelete == '0')
@@ -120,11 +117,9 @@ namespace Application.Estudiante
             };
         }
 
-        public async Task<EstudentDto> UpdateEstudent(
-            EstudentDto estudent)
+        public async Task<EstudentDto> UpdateEstudent(EstudentDto estudent)
         {
-            var students =
-                await _estudentRepository.GetAll();
+            var students = await _estudentRepository.GetAll();
 
             var existingEstudent =
                 students.FirstOrDefault(x =>
@@ -182,21 +177,19 @@ namespace Application.Estudiante
             existingEstudent.Activo =
                 estudent.Activo;
 
-            await _estudentRepository.Update(
-                existingEstudent);
+            await _estudentRepository.Update(existingEstudent);
+            await _context.SaveChangesAsync();
 
             return new EstudentDto
             {
                 IdEstudiante = existingEstudent.IdEstudiante,
                 IdPersona = existingEstudent.IdPersona,
-                CodigoEstudiante =
-                    existingEstudent.CodigoEstudiante,
+                CodigoEstudiante = existingEstudent.CodigoEstudiante,
                 Activo = existingEstudent.Activo
             };
         }
 
-        public async Task<EstudentDto> DeleteEstudent(
-            EstudentDto estudent)
+        public async Task<EstudentDto> DeleteEstudent(EstudentDto estudent)
         {
             var existingEstudent =
                 await _estudentRepository.GetById(
@@ -212,15 +205,14 @@ namespace Application.Estudiante
             existingEstudent.IsDelete = '1';
             existingEstudent.Activo = '0';
 
-            await _estudentRepository.Update(
-                existingEstudent);
+            await _estudentRepository.Update(existingEstudent);
+            await _context.SaveChangesAsync();
 
             return new EstudentDto
             {
                 IdEstudiante = existingEstudent.IdEstudiante,
                 IdPersona = existingEstudent.IdPersona,
-                CodigoEstudiante =
-                    existingEstudent.CodigoEstudiante,
+                CodigoEstudiante = existingEstudent.CodigoEstudiante,
                 Activo = existingEstudent.Activo
             };
         }

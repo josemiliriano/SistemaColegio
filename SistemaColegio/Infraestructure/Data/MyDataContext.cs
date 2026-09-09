@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,6 +12,20 @@ namespace Infraestructure.Data
         public MyDataContext(DbContextOptions<MyDataContext> options): base(options)
         {
 
+        }
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await Database.BeginTransactionAsync();
+        }
+
+        public async Task CommitTransactionAsync(IDbContextTransaction transaction)
+        {
+            await transaction.CommitAsync();
+        }
+
+        public async Task RollbackTransactionAsync(IDbContextTransaction transaction)
+        {
+            await transaction.RollbackAsync();
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -221,9 +236,3 @@ namespace Infraestructure.Data
 
     }
 }
-
-
-
-
-
-

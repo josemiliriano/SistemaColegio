@@ -1,5 +1,6 @@
 ﻿using Application.Aula.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -10,21 +11,20 @@ namespace Application.Aula
     public class ClassroomAppService : IClassroomAppService
     {
         private readonly GeneralRepository<Classroom> _classroomRepository;
+        private readonly MyDataContext _context;
 
-        public ClassroomAppService(
-            GeneralRepository<Classroom> classroomRepository)
+        public ClassroomAppService(GeneralRepository<Classroom> classroomRepository, MyDataContext context)
         {
             _classroomRepository = classroomRepository;
+            _context = context;
         }
 
-        public async Task<ClassroomDto> AddClassroom(
-            ClassroomDto classroom)
+        public async Task<ClassroomDto> AddClassroom(ClassroomDto classroom)
         {
             // Validar capacidad
             if (classroom.Capacidad <= 0)
             {
-                throw new Exception(
-                    "La capacidad del aula debe ser mayor que cero.");
+                throw new Exception("La capacidad del aula debe ser mayor que cero.");
             }
 
             // Obtener aulas existentes
@@ -52,9 +52,8 @@ namespace Application.Aula
             };
 
             // Guardar
-            newClassroom =
-                await _classroomRepository.Add(newClassroom);
-
+            newClassroom = await _classroomRepository.Add(newClassroom);
+            await _context.SaveChangesAsync();
             // Retornar DTO
             return new ClassroomDto
             {
@@ -68,8 +67,7 @@ namespace Application.Aula
 
         public async Task<List<ClassroomDto>> GetAllClassroom()
         {
-            var classrooms =
-                await _classroomRepository.GetAll();
+            var classrooms = await _classroomRepository.GetAll();
 
             return classrooms
                 .Where(x => x.IsDelete == '0')
@@ -105,8 +103,7 @@ namespace Application.Aula
             };
         }
 
-        public async Task<ClassroomDto> UpdateClassroom(
-            ClassroomDto classroom)
+        public async Task<ClassroomDto> UpdateClassroom(ClassroomDto classroom)
         {
             var classrooms =
                 await _classroomRepository.GetAll();
@@ -153,9 +150,8 @@ namespace Application.Aula
             existingClassroom.Activo =
                 classroom.Activo;
 
-            await _classroomRepository.Update(
-                existingClassroom);
-
+            await _classroomRepository.Update(existingClassroom);
+            await _context.SaveChangesAsync();
             // Retornar DTO
             return new ClassroomDto
             {
@@ -167,8 +163,7 @@ namespace Application.Aula
             };
         }
 
-        public async Task<ClassroomDto> DeleteClassroom(
-            ClassroomDto classroom)
+        public async Task<ClassroomDto> DeleteClassroom(ClassroomDto classroom)
         {
             var existingClassroom =
                 await _classroomRepository.GetById(
@@ -184,9 +179,8 @@ namespace Application.Aula
             existingClassroom.IsDelete = '1';
             existingClassroom.Activo = '0';
 
-            await _classroomRepository.Update(
-                existingClassroom);
-
+            await _classroomRepository.Update(existingClassroom);
+            await _context.SaveChangesAsync();
             // Retornar DTO
             return new ClassroomDto
             {
