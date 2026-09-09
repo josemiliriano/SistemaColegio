@@ -1,10 +1,14 @@
 ﻿using Application.Periodo;
 using Application.Periodo.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class PeriodController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class PeriodController : ControllerBase
     {
         private readonly IPeriodAppService _periodAppService;
 
@@ -13,84 +17,69 @@ namespace SistemaColegio.Controllers
             _periodAppService = periodAppService;
         }
 
-        // GET: Period
-        public async Task<IActionResult> Index()
+        // GET: api/Period
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var periods =
                 await _periodAppService.GetAllPeriod();
 
-            return View(periods);
+            return Ok(periods);
         }
 
-        // GET: Period/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/Period/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var period =
                 await _periodAppService.GetPeriodById(id);
 
             if (period == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "El período no existe."
+                });
             }
 
-            return View(period);
+            return Ok(period);
         }
 
-        // GET: Period/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Period/Create
+        // POST: api/Period
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            PeriodDto period)
+            [FromBody] PeriodDto period)
         {
             if (!ModelState.IsValid)
             {
-                return View(period);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _periodAppService.AddPeriod(period);
+                var newPeriod =
+                    await _periodAppService.AddPeriod(period);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newPeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(period);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: Period/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var period =
-                await _periodAppService.GetPeriodById(id);
-
-            if (period == null)
-            {
-                return NotFound();
-            }
-
-            return View(period);
-        }
-
-        // POST: Period/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/Period/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            PeriodDto period)
+            [FromBody] PeriodDto period)
         {
             if (!ModelState.IsValid)
             {
-                return View(period);
+                return BadRequest(ModelState);
             }
 
             try
@@ -102,22 +91,25 @@ namespace SistemaColegio.Controllers
 
                 if (updatedPeriod == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "El período no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedPeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(period);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: Period/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/Period/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -127,19 +119,34 @@ namespace SistemaColegio.Controllers
 
                 if (period == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "El período no existe."
+                    });
                 }
 
-                await _periodAppService.DeletePeriod(period);
+                var deletedPeriod =
+                    await _periodAppService.DeletePeriod(period);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedPeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/Period/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var periods =
+                await _periodAppService.GetPeriodNotDeleted();
+
+            return Ok(periods);
         }
     }
 }

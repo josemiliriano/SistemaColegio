@@ -1,5 +1,6 @@
 ﻿using Application.CursoPeriodo.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -11,20 +12,18 @@ namespace Application.CursoPeriodo
     {
         public class CoursePeriodAppService : ICoursePeriodAppService
         {
-            private readonly GeneralRepository<CoursePeriod>
-                _coursePeriodRepository;
+            private readonly GeneralRepository<CoursePeriod> _coursePeriodRepository;
+            private readonly MyDataContext _context;
 
-            public CoursePeriodAppService(
-                GeneralRepository<CoursePeriod> coursePeriodRepository)
+            public CoursePeriodAppService(GeneralRepository<CoursePeriod> coursePeriodRepository, MyDataContext context)
             {
                 _coursePeriodRepository = coursePeriodRepository;
+                _context = context;
             }
 
-            public async Task<CursoPeriodoDto> AddCoursePeriod(
-                CursoPeriodoDto cursoPeriodo)
+            public async Task<CursoPeriodoDto> AddCoursePeriod(CursoPeriodoDto cursoPeriodo)
             {
-                var coursePeriods =
-                    await _coursePeriodRepository.GetAll();
+                var coursePeriods = await _coursePeriodRepository.GetAll();
 
                 // Validar que el curso no esté registrado
                 // nuevamente en el mismo período
@@ -47,8 +46,8 @@ namespace Application.CursoPeriodo
                     IsDelete = '0'
                 };
 
-                newCoursePeriod =
-                    await _coursePeriodRepository.Add(newCoursePeriod);
+                newCoursePeriod = await _coursePeriodRepository.Add(newCoursePeriod);
+                await _context.SaveChangesAsync();
 
                 return new CursoPeriodoDto
                 {
@@ -98,9 +97,7 @@ namespace Application.CursoPeriodo
                 };
             }
 
-            public async Task<CursoPeriodoDto>
-                UpdateCoursePeriod(
-                    CursoPeriodoDto cursoPeriodo)
+            public async Task<CursoPeriodoDto>UpdateCoursePeriod(CursoPeriodoDto cursoPeriodo)
             {
                 var existingCoursePeriod =
                     await _coursePeriodRepository.GetById(
@@ -118,6 +115,7 @@ namespace Application.CursoPeriodo
 
                 await _coursePeriodRepository.Update(
                     existingCoursePeriod);
+                await _context.SaveChangesAsync();
 
                 return new CursoPeriodoDto
                 {
@@ -136,15 +134,13 @@ namespace Application.CursoPeriodo
             }
 
             public async Task<CursoPeriodoDto>
-                DeleteCoursePeriod(
-                    CursoPeriodoDto cursoPeriodo)
+                DeleteCoursePeriod(CursoPeriodoDto cursoPeriodo)
             {
                 var existingCoursePeriod =
                     await _coursePeriodRepository.GetById(
                         cursoPeriodo.IdCursoPeriodo);
 
-                if (existingCoursePeriod == null ||
-                    existingCoursePeriod.IsDelete == '1')
+                if (existingCoursePeriod == null || existingCoursePeriod.IsDelete == '1')
                 {
                     return null;
                 }
@@ -155,7 +151,7 @@ namespace Application.CursoPeriodo
 
                 await _coursePeriodRepository.Update(
                     existingCoursePeriod);
-
+                await _context.SaveChangesAsync();
                 return new CursoPeriodoDto
                 {
                     IdCursoPeriodo =

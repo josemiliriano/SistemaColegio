@@ -1,6 +1,8 @@
 ﻿using Application.Curso.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,10 +12,12 @@ namespace Application.Curso
     public class CourseAppService : ICourseAppService
     {
         private readonly GeneralRepository<Course> _courseRepository;
+        private readonly MyDataContext _context;
 
-        public CourseAppService(GeneralRepository<Course> courseRepository)
+        public CourseAppService(GeneralRepository<Course> courseRepository,MyDataContext context)
         {
             _courseRepository = courseRepository;
+            _context = context;
         }
 
         public async Task<CourseDto> AddCourse(CourseDto course)
@@ -38,6 +42,7 @@ namespace Application.Curso
             };
 
             newCourse = await _courseRepository.Add(newCourse);
+            await _context.SaveChangesAsync();
 
             return new CourseDto
             {
@@ -109,6 +114,7 @@ namespace Application.Curso
             existingCourse.Activo = course.Activo;
 
             await _courseRepository.Update(existingCourse);
+            await _context.SaveChangesAsync();
 
             return new CourseDto
             {
@@ -134,6 +140,7 @@ namespace Application.Curso
             existingCourse.Activo = '0';
 
             await _courseRepository.Update(existingCourse);
+            await _context.SaveChangesAsync();
 
             return new CourseDto
             {

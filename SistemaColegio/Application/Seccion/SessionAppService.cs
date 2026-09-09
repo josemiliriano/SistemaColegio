@@ -1,5 +1,6 @@
 ﻿using Application.Seccion.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -11,13 +12,15 @@ namespace Application.Seccion
     {
         private readonly GeneralRepository<Session> _sessionRepository;
         private readonly GeneralRepository<Course> _courseRepository;
-
+        private readonly MyDataContext _context;
         public SessionAppService(
             GeneralRepository<Session> sessionRepository,
-            GeneralRepository<Course> courseRepository)
+            GeneralRepository<Course> courseRepository,
+            MyDataContext context)
         {
             _sessionRepository = sessionRepository;
             _courseRepository = courseRepository;
+            _context = context;
         }
 
         public async Task<SessionDto> AddSession(SessionDto session)
@@ -82,7 +85,7 @@ namespace Application.Seccion
         public async Task<List<SessionDto>> GetAllSession()
         {
             var sessions = await _sessionRepository.GetAll();
-
+            await _context.SaveChangesAsync();
             return sessions
                 .Where(x => x.IsDelete == '0')
                 .Select(x => new SessionDto
@@ -112,14 +115,12 @@ namespace Application.Seccion
                 IdSeccion = session.IdSeccion,
                 IdCurso = session.IdCurso,
                 Nombre = session.Nombre,
-                CupoCapacidadMaximo =
-                    session.CupoCapacidadMaximo,
+                CupoCapacidadMaximo = session.CupoCapacidadMaximo,
                 Activo = session.Activo
             };
         }
 
-        public async Task<SessionDto> UpdateSession(
-            SessionDto session)
+        public async Task<SessionDto> UpdateSession(SessionDto session)
         {
             var sessions = await _sessionRepository.GetAll();
 
@@ -133,15 +134,13 @@ namespace Application.Seccion
             }
 
             // Verificar que el curso exista y esté activo
-            var course = await _courseRepository.GetById(
-                session.IdCurso);
+            var course = await _courseRepository.GetById(session.IdCurso);
 
             if (course == null ||
                 course.IsDelete == '1' ||
                 course.Activo != '1')
             {
-                throw new Exception(
-                    "El curso no existe o está inactivo.");
+                throw new Exception("El curso no existe o está inactivo.");
             }
 
             // Validar cupo
@@ -172,20 +171,18 @@ namespace Application.Seccion
             existingSession.Activo = session.Activo;
 
             await _sessionRepository.Update(existingSession);
-
+            await _context.SaveChangesAsync();
             return new SessionDto
             {
                 IdSeccion = existingSession.IdSeccion,
                 IdCurso = existingSession.IdCurso,
                 Nombre = existingSession.Nombre,
-                CupoCapacidadMaximo =
-                    existingSession.CupoCapacidadMaximo,
+                CupoCapacidadMaximo = existingSession.CupoCapacidadMaximo,
                 Activo = existingSession.Activo
             };
         }
 
-        public async Task<SessionDto> DeleteSession(
-            SessionDto session)
+        public async Task<SessionDto> DeleteSession(SessionDto session)
         {
             var existingSession =
                 await _sessionRepository.GetById(
@@ -202,7 +199,7 @@ namespace Application.Seccion
             existingSession.Activo = '0';
 
             await _sessionRepository.Update(existingSession);
-
+            await _context.SaveChangesAsync();
             return new SessionDto
             {
                 IdSeccion = existingSession.IdSeccion,

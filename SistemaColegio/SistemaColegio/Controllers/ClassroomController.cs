@@ -1,97 +1,85 @@
 ﻿using Application.Aula;
 using Application.Aula.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class ClassroomController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class ClassroomController : ControllerBase
     {
         private readonly IClassroomAppService _classroomAppService;
 
-        public ClassroomController(
-            IClassroomAppService classroomAppService)
+        public ClassroomController(IClassroomAppService classroomAppService)
         {
             _classroomAppService = classroomAppService;
         }
 
-        // GET: Classroom
-        public async Task<IActionResult> Index()
+        // GET: api/Classroom
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var classrooms =
                 await _classroomAppService.GetAllClassroom();
 
-            return View(classrooms);
+            return Ok(classrooms);
         }
 
-        // GET: Classroom/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/Classroom/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var classroom =
                 await _classroomAppService.GetClassroomById(id);
 
             if (classroom == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "El aula no existe."
+                });
             }
 
-            return View(classroom);
+            return Ok(classroom);
         }
 
-        // GET: Classroom/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Classroom/Create
+        // POST: api/Classroom
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            ClassroomDto classroom)
+            [FromBody] ClassroomDto classroom)
         {
             if (!ModelState.IsValid)
             {
-                return View(classroom);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _classroomAppService.AddClassroom(classroom);
+                var newClassroom =
+                    await _classroomAppService.AddClassroom(classroom);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newClassroom);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(classroom);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: Classroom/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var classroom =
-                await _classroomAppService.GetClassroomById(id);
-
-            if (classroom == null)
-            {
-                return NotFound();
-            }
-
-            return View(classroom);
-        }
-
-        // POST: Classroom/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/Classroom/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            ClassroomDto classroom)
+            [FromBody] ClassroomDto classroom)
         {
             if (!ModelState.IsValid)
             {
-                return View(classroom);
+                return BadRequest(ModelState);
             }
 
             try
@@ -99,51 +87,66 @@ namespace SistemaColegio.Controllers
                 classroom.IdAula = id;
 
                 var updatedClassroom =
-                    await _classroomAppService
-                        .UpdateClassroom(classroom);
+                    await _classroomAppService.UpdateClassroom(classroom);
 
                 if (updatedClassroom == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "El aula no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedClassroom);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(classroom);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: Classroom/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/Classroom/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
                 var classroom =
-                    await _classroomAppService
-                        .GetClassroomById(id);
+                    await _classroomAppService.GetClassroomById(id);
 
                 if (classroom == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "El aula no existe."
+                    });
                 }
 
-                await _classroomAppService
-                    .DeleteClassroom(classroom);
+                var deletedClassroom =
+                    await _classroomAppService.DeleteClassroom(classroom);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedClassroom);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/Classroom/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var classrooms =
+                await _classroomAppService.GetClassroomNotDeleted();
+
+            return Ok(classrooms);
         }
     }
 }

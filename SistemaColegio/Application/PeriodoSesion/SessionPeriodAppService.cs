@@ -1,6 +1,8 @@
 ﻿using Application.PeriodoSesion.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,17 +13,16 @@ namespace Application.PeriodoSesion
     {
         public class SessionPeriodAppService : ISessionPeriodAppService
         {
-            private readonly GeneralRepository<SessionPeriod>
-                _sessionPeriodRepository;
+            private readonly GeneralRepository<SessionPeriod> _sessionPeriodRepository;
+            private readonly MyDataContext _context;
 
-            public SessionPeriodAppService(
-                GeneralRepository<SessionPeriod> sessionPeriodRepository)
+            public SessionPeriodAppService(GeneralRepository<SessionPeriod> sessionPeriodRepository, MyDataContext context)
             {
                 _sessionPeriodRepository = sessionPeriodRepository;
+                _context = context;
             }
 
-            public async Task<SessionPeriodDto> AddSessionPeriod(
-                SessionPeriodDto sessionPeriod)
+            public async Task<SessionPeriodDto> AddSessionPeriod(SessionPeriodDto sessionPeriod)
             {
                 var sessionPeriods =
                     await _sessionPeriodRepository.GetAll();
@@ -62,31 +63,25 @@ namespace Application.PeriodoSesion
                 };
 
                 // Guardar
-                newSessionPeriod =
-                    await _sessionPeriodRepository.Add(newSessionPeriod);
+                newSessionPeriod = await _sessionPeriodRepository.Add(newSessionPeriod);
+                await _context.SaveChangesAsync();
 
                 // Retornar DTO
                 return new SessionPeriodDto
                 {
-                    IdSessionPeriod =
-                        newSessionPeriod.IdSessionPeriod,
+                    IdSessionPeriod = newSessionPeriod.IdSessionPeriod,
 
-                    IdSeccion =
-                        newSessionPeriod.IdSeccion,
+                    IdSeccion = newSessionPeriod.IdSeccion,
 
-                    IdPeriodo =
-                        newSessionPeriod.IdPeriodo,
+                    IdPeriodo = newSessionPeriod.IdPeriodo,
 
-                    IdAula =
-                        newSessionPeriod.IdAula,
+                    IdAula = newSessionPeriod.IdAula,
 
-                    IsDelete =
-                        newSessionPeriod.IsDelete
+                    IsDelete = newSessionPeriod.IsDelete
                 };
             }
 
-            public async Task<List<SessionPeriodDto>>
-                GetAllSessionPeriod()
+            public async Task<List<SessionPeriodDto>> GetAllSessionPeriod()
             {
                 var sessionPeriods =
                     await _sessionPeriodRepository.GetAll();
@@ -113,8 +108,7 @@ namespace Application.PeriodoSesion
                     .ToList();
             }
 
-            public async Task<SessionPeriodDto>
-                GetSessionPeriodById(int id)
+            public async Task<SessionPeriodDto> GetSessionPeriodById(int id)
             {
                 var sessionPeriod =
                     await _sessionPeriodRepository.GetById(id);
@@ -144,9 +138,7 @@ namespace Application.PeriodoSesion
                 };
             }
 
-            public async Task<SessionPeriodDto>
-                UpdateSessionPeriod(
-                    SessionPeriodDto sessionPeriod)
+            public async Task<SessionPeriodDto> UpdateSessionPeriod(SessionPeriodDto sessionPeriod)
             {
                 var sessionPeriods =
                     await _sessionPeriodRepository.GetAll();
@@ -184,11 +176,10 @@ namespace Application.PeriodoSesion
                 }
 
                 // Actualizar únicamente el aula
-                existingSessionPeriod.IdAula =
-                    sessionPeriod.IdAula;
+                existingSessionPeriod.IdAula = sessionPeriod.IdAula;
 
-                await _sessionPeriodRepository
-                    .Update(existingSessionPeriod);
+                await _sessionPeriodRepository.Update(existingSessionPeriod);
+                await _context.SaveChangesAsync();
 
                 return new SessionPeriodDto
                 {
@@ -209,9 +200,7 @@ namespace Application.PeriodoSesion
                 };
             }
 
-            public async Task<SessionPeriodDto>
-                DeleteSessionPeriod(
-                    SessionPeriodDto sessionPeriod)
+            public async Task<SessionPeriodDto> DeleteSessionPeriod(SessionPeriodDto sessionPeriod)
             {
                 var existingSessionPeriod =
                     await _sessionPeriodRepository
@@ -227,8 +216,8 @@ namespace Application.PeriodoSesion
                 // Eliminación lógica
                 existingSessionPeriod.IsDelete = '1';
 
-                await _sessionPeriodRepository
-                    .Update(existingSessionPeriod);
+                await _sessionPeriodRepository.Update(existingSessionPeriod);
+                await _context.SaveChangesAsync();
 
                 return new SessionPeriodDto
                 {
@@ -249,8 +238,7 @@ namespace Application.PeriodoSesion
                 };
             }
 
-            public async Task<List<SessionPeriodDto>>
-                GetSessionPeriodNotDeleted()
+            public async Task<List<SessionPeriodDto>> GetSessionPeriodNotDeleted()
             {
                 return await GetAllSessionPeriod();
             }

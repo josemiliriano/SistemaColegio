@@ -1,5 +1,6 @@
 ﻿using Application.ProfesorMateria.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -9,23 +10,23 @@ namespace Application.ProfesorMateria
 {
     public class ProfessorSubjectAppService : IProfessorSubjectAppService
     {
-        private readonly GeneralRepository<ProfessorSubject>
-            _professorSubjectRepository;
+        private readonly GeneralRepository<ProfessorSubject> _professorSubjectRepository;
 
-        private readonly GeneralRepository<Professor>
-            _professorRepository;
+        private readonly GeneralRepository<Professor> _professorRepository;
 
-        private readonly GeneralRepository<Subject>
-            _subjectRepository;
+        private readonly GeneralRepository<Subject> _subjectRepository;
+        private readonly MyDataContext _context;
 
         public ProfessorSubjectAppService(
             GeneralRepository<ProfessorSubject> professorSubjectRepository,
             GeneralRepository<Professor> professorRepository,
-            GeneralRepository<Subject> subjectRepository)
+            GeneralRepository<Subject> subjectRepository,
+            MyDataContext context)
         {
             _professorSubjectRepository = professorSubjectRepository;
             _professorRepository = professorRepository;
             _subjectRepository = subjectRepository;
+            _context = context;
         }
 
         public async Task<ProfessorSubjectDto> AddProfessorSubject(
@@ -81,6 +82,7 @@ namespace Application.ProfesorMateria
             newProfessorSubject =
                 await _professorSubjectRepository
                     .Add(newProfessorSubject);
+            await _context.SaveChangesAsync();
 
             return new ProfessorSubjectDto
             {
@@ -152,9 +154,7 @@ namespace Application.ProfesorMateria
             };
         }
 
-        public async Task<ProfessorSubjectDto>
-            UpdateProfessorSubject(
-                ProfessorSubjectDto professorSubject)
+        public async Task<ProfessorSubjectDto> UpdateProfessorSubject( ProfessorSubjectDto professorSubject)
         {
             var existingProfessorSubject =
                 await _professorSubjectRepository
@@ -174,6 +174,9 @@ namespace Application.ProfesorMateria
             await _professorSubjectRepository
                 .Update(existingProfessorSubject);
 
+            // Guardar cambios
+            await _context.SaveChangesAsync();
+
             return new ProfessorSubjectDto
             {
                 IdProfesorMateria =
@@ -190,9 +193,7 @@ namespace Application.ProfesorMateria
             };
         }
 
-        public async Task<ProfessorSubjectDto>
-            DeleteProfessorSubject(
-                ProfessorSubjectDto professorSubject)
+        public async Task<ProfessorSubjectDto> DeleteProfessorSubject(ProfessorSubjectDto professorSubject)
         {
             var existingProfessorSubject =
                 await _professorSubjectRepository
@@ -212,6 +213,9 @@ namespace Application.ProfesorMateria
             await _professorSubjectRepository
                 .Update(existingProfessorSubject);
 
+            // Guardar cambios
+            await _context.SaveChangesAsync();
+
             return new ProfessorSubjectDto
             {
                 IdProfesorMateria = existingProfessorSubject.IdProfesorMateria,
@@ -224,8 +228,7 @@ namespace Application.ProfesorMateria
             };
         }
 
-        public async Task<List<ProfessorSubjectDto>>
-            GetProfessorSubjectNotDeleted()
+        public async Task<List<ProfessorSubjectDto>> GetProfessorSubjectNotDeleted()
         {
             return await GetAllProfessorSubject();
         }

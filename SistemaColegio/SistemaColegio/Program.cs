@@ -7,6 +7,7 @@ using Application.CursoPeriodo;
 using Application.CursoPeriodo.Application.CursoPeriodo;
 using Application.Estudiante;
 using Application.Materia;
+using Application.MesPeriodo;
 using Application.Periodo;
 using Application.PeriodoSesion;
 using Application.PeriodoSesion.Application.SeccionPeriodo;
@@ -14,14 +15,15 @@ using Application.Persona;
 using Application.Profesor;
 using Application.ProfesorMateria;
 using Application.Seccion;
+using Application.SubPeriodos;
 using Application.Usuario;
 using Infraestructure.Data;
 using Infraestructure.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,7 +72,8 @@ builder.Services.AddScoped<ICourseAppService, CourseAppService>();
 builder.Services.AddScoped<ISessionAppService, SessionAppService>();
 builder.Services.AddScoped<IClassroomAppService, ClassroomAppService>();
 builder.Services.AddScoped<IPeriodAppService, PeriodAppService>();
-
+builder.Services.AddScoped<IAcademicSubPeriodAppService, AcademicSubPeriodAppService>();
+builder.Services.AddScoped<IAcademicMonthAppService, AcademicMonthAppService>();
 builder.Services.AddScoped<ICoursePeriodAppService, CoursePeriodAppService>();
 builder.Services.AddScoped<ICourseSubjectAppService, CourseSubjectAppService>();
 builder.Services.AddScoped<IProfessorSubjectAppService, ProfessorSubjectAppService>();

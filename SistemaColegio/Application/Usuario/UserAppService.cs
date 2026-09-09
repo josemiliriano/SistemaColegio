@@ -10,15 +10,18 @@ public class UserAppService : IUserAppService
     private readonly GeneralRepository<CDUser> _userRepository;
     private readonly GeneralRepository<Person> _personRepository;
     private readonly GeneralRepository<Role> _roleRepository;
+    private readonly MyDataContext _context;
 
     public UserAppService(
-        GeneralRepository<CDUser> userRepository,
-        GeneralRepository<Person> personRepository,
-        GeneralRepository<Role> roleRepository)
+     GeneralRepository<CDUser> userRepository,
+     GeneralRepository<Person> personRepository,
+     GeneralRepository<Role> roleRepository,
+     MyDataContext context)
     {
         _userRepository = userRepository;
         _personRepository = personRepository;
         _roleRepository = roleRepository;
+        _context = context;
     }
 
     public async Task<UserDto> AddUser(CreateUserDto user)
@@ -48,53 +51,68 @@ public class UserAppService : IUserAppService
             throw new Exception("El rol especificado no existe.");
         }
 
-        // Crear Person
-        var person = new Person
+        // Iniciar transacción
+        await using var transaction = await _context.BeginTransactionAsync();
+
+        try
         {
-            Nombres = user.Nombres,
-            Apellidos = user.Apellidos,
-            FechaNacimiento = user.FechaNacimiento,
-            Telefono = user.Telefono,
-            Direccion = user.Direccion,
-            Correo = user.Correo
-        };
+            // Crear Person
+            var person = new Person
+            {
+                Nombres = user.Nombres,
+                Apellidos = user.Apellidos,
+                FechaNacimiento = user.FechaNacimiento,
+                Telefono = user.Telefono,
+                Direccion = user.Direccion,
+                Correo = user.Correo
+            };
 
-        person = await _personRepository.Add(person);
+            await _personRepository.Add(person);
 
-        // Crear User
-        var newUser = new CDUser
+            // Crear User
+            var newUser = new CDUser
+            {
+                Persona = person,
+                IdRol = role.IdRol,
+                NombreUsuario = user.NombreUsuario,
+                Password = BCrypt.Net.BCrypt.HashPassword(user.Password),
+                Activo = '1',
+                IsDelete = '0'
+            };
+
+            await _userRepository.Add(newUser);
+
+            // Guardar Person y User
+            await _context.SaveChangesAsync();
+
+            // Confirmar transacción
+            await transaction.CommitAsync();
+
+            // Retornar DTO sin contraseña
+            return new UserDto
+            {
+                IdUsuario = newUser.IdUsuario,
+                IdRol = newUser.IdRol,
+
+                Nombres = person.Nombres,
+                Apellidos = person.Apellidos,
+                FechaNacimiento = person.FechaNacimiento,
+                Telefono = person.Telefono,
+                Direccion = person.Direccion,
+                Correo = person.Correo,
+
+                NombreUsuario = newUser.NombreUsuario,
+                Activo = newUser.Activo,
+
+                NombreRol = role.NombreRol
+            };
+        }
+        catch
         {
-            IdPersona = person.IdPersona,
-            IdRol = role.IdRol,
-            NombreUsuario = user.NombreUsuario,
+            await transaction.RollbackAsync();
 
-            // Hashear la contraseña
-            Password = BCrypt.Net.BCrypt.HashPassword(user.Password),
-
-            Activo = '1',
-            IsDelete = '0'
-        };
-
-        newUser = await _userRepository.Add(newUser);
-
-        // Retornar DTO sin contraseña
-        return new UserDto
-        {
-            IdUsuario = newUser.IdUsuario,
-            IdRol = newUser.IdRol,
-
-            Nombres = person.Nombres,
-            Apellidos = person.Apellidos,
-            FechaNacimiento = person.FechaNacimiento,
-            Telefono = person.Telefono,
-            Direccion = person.Direccion,
-            Correo = person.Correo,
-
-            NombreUsuario = newUser.NombreUsuario,
-            Activo = newUser.Activo,
-
-            NombreRol = role.NombreRol
-        };
+            throw;
+        }
     }
 
     public async Task<List<UserDto>> GetAllUser()
@@ -152,9 +170,13 @@ public class UserAppService : IUserAppService
 
     public async Task<UserDto> UpdateUser(int idUsuario, UserDto user)
     {
-        var users = await _userRepository.GetAllInclude(u => u.Persona, u => u.Rol);
+        var users = await _userRepository.GetAllInclude(
+            u => u.Persona,
+            u => u.Rol);
 
-        var existingUser = users.FirstOrDefault(u => u.IdUsuario == idUsuario && u.IsDelete == '0');
+        var existingUser = users.FirstOrDefault(u =>
+            u.IdUsuario == idUsuario &&
+            u.IsDelete == '0');
 
         if (existingUser == null)
         {
@@ -185,36 +207,56 @@ public class UserAppService : IUserAppService
             throw new Exception("El rol especificado no existe.");
         }
 
-        // Actualizar Person
-        existingUser.Persona.Nombres = user.Nombres;
-        existingUser.Persona.Apellidos = user.Apellidos;
-        existingUser.Persona.FechaNacimiento = user.FechaNacimiento;
-        existingUser.Persona.Telefono = user.Telefono;
-        existingUser.Persona.Direccion = user.Direccion;
-        existingUser.Persona.Correo = user.Correo;
+        // Iniciar transacción
+        await using var transaction = await _context.BeginTransactionAsync();
 
-        // Actualizar User
-        existingUser.NombreUsuario = user.NombreUsuario;        
-        existingUser.Activo = user.Activo;
-        existingUser.IdRol = role.IdRol;
-
-        await _personRepository.Update(existingUser.Persona);
-        await _userRepository.Update(existingUser);
-
-        return new UserDto
+        try
         {
-            Nombres = existingUser.Persona.Nombres,
-            Apellidos = existingUser.Persona.Apellidos,
-            FechaNacimiento = existingUser.Persona.FechaNacimiento,
-            Telefono = existingUser.Persona.Telefono,
-            Direccion = existingUser.Persona.Direccion,
-            Correo = existingUser.Persona.Correo,
+            // Actualizar datos de Person
+            existingUser.Persona.Nombres = user.Nombres;
+            existingUser.Persona.Apellidos = user.Apellidos;
+            existingUser.Persona.FechaNacimiento = user.FechaNacimiento;
+            existingUser.Persona.Telefono = user.Telefono;
+            existingUser.Persona.Direccion = user.Direccion;
+            existingUser.Persona.Correo = user.Correo;
 
-            NombreUsuario = existingUser.NombreUsuario,
-            Activo = existingUser.Activo,
+            // Actualizar datos de User
+            existingUser.NombreUsuario = user.NombreUsuario;
+            existingUser.Activo = user.Activo;
+            existingUser.IdRol = role.IdRol;
 
-            NombreRol = role.NombreRol
-        };
+            await _personRepository.Update(existingUser.Persona);
+            await _userRepository.Update(existingUser);
+
+            // Guardar cambios
+            await _context.SaveChangesAsync();
+
+            // Confirmar transacción
+            await transaction.CommitAsync();
+
+            return new UserDto
+            {
+                IdUsuario = existingUser.IdUsuario,
+                IdRol = existingUser.IdRol,
+
+                Nombres = existingUser.Persona.Nombres,
+                Apellidos = existingUser.Persona.Apellidos,
+                FechaNacimiento = existingUser.Persona.FechaNacimiento,
+                Telefono = existingUser.Persona.Telefono,
+                Direccion = existingUser.Persona.Direccion,
+                Correo = existingUser.Persona.Correo,
+
+                NombreUsuario = existingUser.NombreUsuario,
+                Activo = existingUser.Activo,
+
+                NombreRol = role.NombreRol
+            };
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<UserDto> DeleteUser(int idUsuario)
@@ -232,9 +274,13 @@ public class UserAppService : IUserAppService
 
         await _userRepository.Update(user);
 
+        // Guardar cambios
+        await _context.SaveChangesAsync();
+
         return new UserDto
         {
-            NombreUsuario = user.NombreUsuario,            
+            IdUsuario = user.IdUsuario,
+            NombreUsuario = user.NombreUsuario,
             Activo = user.Activo
         };
     }
@@ -248,13 +294,17 @@ public class UserAppService : IUserAppService
     {
         var user = await _userRepository.GetById(idUsuario);
 
-        if (user == null || user.IsDelete == '1' || user.Activo == '0')
+        if (user == null ||
+            user.IsDelete == '1' ||
+            user.Activo == '0')
         {
             return false;
         }
 
         // Verificar la contraseña actual
-        var passwordCorrecta = BCrypt.Net.BCrypt.Verify(passwordDto.PasswordActual, user.Password);
+        var passwordCorrecta = BCrypt.Net.BCrypt.Verify(
+            passwordDto.PasswordActual,
+            user.Password);
 
         if (!passwordCorrecta)
         {
@@ -262,9 +312,13 @@ public class UserAppService : IUserAppService
         }
 
         // Generar nuevo hash
-        user.Password = BCrypt.Net.BCrypt.HashPassword(passwordDto.NuevaPassword);
+        user.Password = BCrypt.Net.BCrypt.HashPassword(
+            passwordDto.NuevaPassword);
 
         await _userRepository.Update(user);
+
+        // Guardar cambios
+        await _context.SaveChangesAsync();
 
         return true;
     }

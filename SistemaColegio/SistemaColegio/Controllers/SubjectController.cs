@@ -1,10 +1,14 @@
 ﻿using Application.Materia;
 using Application.Materia.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class SubjectController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class SubjectController : ControllerBase
     {
         private readonly ISubjectAppService _subjectAppService;
 
@@ -13,80 +17,69 @@ namespace SistemaColegio.Controllers
             _subjectAppService = subjectAppService;
         }
 
-        // GET: Subject
-        public async Task<IActionResult> Index()
+        // GET: api/Subject
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            var subjects = await _subjectAppService.GetAllSubject();
+            var subjects =
+                await _subjectAppService.GetAllSubject();
 
-            return View(subjects);
+            return Ok(subjects);
         }
 
-        // GET: Subject/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/Subject/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            var subject = await _subjectAppService.GetSubjectById(id);
+            var subject =
+                await _subjectAppService.GetSubjectById(id);
 
             if (subject == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "La materia no existe."
+                });
             }
 
-            return View(subject);
+            return Ok(subject);
         }
 
-        // GET: Subject/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Subject/Create
+        // POST: api/Subject
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(SubjectDto subject)
+        public async Task<IActionResult> Create(
+            [FromBody] SubjectDto subject)
         {
             if (!ModelState.IsValid)
             {
-                return View(subject);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _subjectAppService.AddSubject(subject);
+                var newSubject =
+                    await _subjectAppService.AddSubject(subject);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(subject);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: Subject/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var subject = await _subjectAppService.GetSubjectById(id);
-
-            if (subject == null)
-            {
-                return NotFound();
-            }
-
-            return View(subject);
-        }
-
-        // POST: Subject/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/Subject/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            SubjectDto subject)
+            [FromBody] SubjectDto subject)
         {
             if (!ModelState.IsValid)
             {
-                return View(subject);
+                return BadRequest(ModelState);
             }
 
             try
@@ -98,22 +91,25 @@ namespace SistemaColegio.Controllers
 
                 if (updatedSubject == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La materia no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(subject);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: Subject/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/Subject/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -123,19 +119,34 @@ namespace SistemaColegio.Controllers
 
                 if (subject == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La materia no existe."
+                    });
                 }
 
-                await _subjectAppService.DeleteSubject(subject);
+                var deletedSubject =
+                    await _subjectAppService.DeleteSubject(subject);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/Subject/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var subjects =
+                await _subjectAppService.GetSubjectNotDeleted();
+
+            return Ok(subjects);
         }
     }
 }

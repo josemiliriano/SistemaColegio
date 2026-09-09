@@ -1,5 +1,6 @@
 ﻿using Application.Periodo.DTOs;
 using Domain.Entities;
+using Infraestructure.Data;
 using Infraestructure.Repository;
 using System;
 using System.Collections.Generic;
@@ -10,11 +11,12 @@ namespace Application.Periodo
     public class PeriodAppService : IPeriodAppService
     {
         private readonly GeneralRepository<Period> _periodRepository;
+        private readonly MyDataContext _context;
 
-        public PeriodAppService(
-            GeneralRepository<Period> periodRepository)
+        public PeriodAppService(GeneralRepository<Period> periodRepository, MyDataContext context)
         {
             _periodRepository = periodRepository;
+            _context = context;
         }
 
         public async Task<PeriodDto> AddPeriod(PeriodDto period)
@@ -52,6 +54,7 @@ namespace Application.Periodo
 
             // Guardar
             newPeriod = await _periodRepository.Add(newPeriod);
+            await _context.SaveChangesAsync();
 
             // Retornar DTO
             return new PeriodDto
@@ -139,7 +142,7 @@ namespace Application.Periodo
             existingPeriod.Activo = period.Activo;
 
             await _periodRepository.Update(existingPeriod);
-
+            await _context.SaveChangesAsync();
             // Retornar DTO
             return new PeriodDto
             {
@@ -167,6 +170,7 @@ namespace Application.Periodo
             existingPeriod.Activo = '0';
 
             await _periodRepository.Update(existingPeriod);
+            await _context.SaveChangesAsync();
 
             // Retornar DTO
             return new PeriodDto
