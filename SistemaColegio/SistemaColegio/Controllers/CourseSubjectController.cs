@@ -1,10 +1,14 @@
 ﻿using Application.CursoMateria;
 using Application.CursoMateria.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class CourseSubjectController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class CourseSubjectController : ControllerBase
     {
         private readonly ICourseSubjectAppService _courseSubjectAppService;
 
@@ -14,18 +18,20 @@ namespace SistemaColegio.Controllers
             _courseSubjectAppService = courseSubjectAppService;
         }
 
-        // GET: CourseSubject
-        public async Task<IActionResult> Index()
+        // GET: api/CourseSubject
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var courseSubjects =
                 await _courseSubjectAppService
                     .GetAllCourseSubject();
 
-            return View(courseSubjects);
+            return Ok(courseSubjects);
         }
 
-        // GET: CourseSubject/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/CourseSubject/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var courseSubject =
                 await _courseSubjectAppService
@@ -33,75 +39,55 @@ namespace SistemaColegio.Controllers
 
             if (courseSubject == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "La relación curso-materia no existe."
+                });
             }
 
-            return View(courseSubject);
+            return Ok(courseSubject);
         }
 
-        // GET: CourseSubject/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: CourseSubject/Create
+        // POST: api/CourseSubject
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            CourseSubjectDto courseSubject)
+            [FromBody] CourseSubjectDto courseSubject)
         {
             if (!ModelState.IsValid)
             {
-                return View(courseSubject);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _courseSubjectAppService
-                    .AddCourseSubject(courseSubject);
+                var newCourseSubject =
+                    await _courseSubjectAppService
+                        .AddCourseSubject(courseSubject);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newCourseSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(courseSubject);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: CourseSubject/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var courseSubject =
-                await _courseSubjectAppService
-                    .GetCourseSubjectById(id);
-
-            if (courseSubject == null)
-            {
-                return NotFound();
-            }
-
-            return View(courseSubject);
-        }
-
-        // POST: CourseSubject/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/CourseSubject/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            CourseSubjectDto courseSubject)
+            [FromBody] CourseSubjectDto courseSubject)
         {
             if (!ModelState.IsValid)
             {
-                return View(courseSubject);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                // El ID de la URL identifica
-                // directamente la relación.
                 courseSubject.IdCursoMateria = id;
 
                 var updatedCourseSubject =
@@ -110,22 +96,25 @@ namespace SistemaColegio.Controllers
 
                 if (updatedCourseSubject == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La relación curso-materia no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedCourseSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(courseSubject);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: CourseSubject/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/CourseSubject/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -136,20 +125,36 @@ namespace SistemaColegio.Controllers
 
                 if (courseSubject == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La relación curso-materia no existe."
+                    });
                 }
 
-                await _courseSubjectAppService
-                    .DeleteCourseSubject(courseSubject);
+                var deletedCourseSubject =
+                    await _courseSubjectAppService
+                        .DeleteCourseSubject(courseSubject);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedCourseSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/CourseSubject/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var courseSubjects =
+                await _courseSubjectAppService
+                    .GetCourseSubjectNotDeleted();
+
+            return Ok(courseSubjects);
         }
     }
 }

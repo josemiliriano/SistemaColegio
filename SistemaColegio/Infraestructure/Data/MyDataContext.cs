@@ -217,6 +217,29 @@ namespace Infraestructure.Data
                     x.IdSessionPeriod
                 })
                 .IsUnique();
+
+            // Evaluation -> Estudent
+            modelBuilder.Entity<Evaluation>()
+                .HasOne(x => x.Estudent)
+                .WithMany()
+                .HasForeignKey(x => x.IdEstudiante)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // Evaluation -> TeachingAssignment
+            modelBuilder.Entity<Evaluation>()
+                .HasOne(x => x.TeachingAssignment)
+                .WithMany()
+                .HasForeignKey(x => x.IdAsignacionDocente)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // Evaluation -> SubPeriod
+            modelBuilder.Entity<Evaluation>()
+                .HasOne(x => x.SubPeriod)
+                .WithMany()
+                .HasForeignKey(x => x.IdSubPeriodo)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<Person> Persons { get; set; }
         public DbSet<CDUser> Users { get; set; }
@@ -233,6 +256,7 @@ namespace Infraestructure.Data
         public DbSet<AcademicMonth> AcademicMonths { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<CourseSubject> CourseSubjects { get; set; }
+        public DbSet<Evaluation> Evaluations { get; set; }
 
     }
 }
