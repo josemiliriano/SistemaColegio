@@ -1,5 +1,5 @@
-﻿using Application.Seccion;
-using Application.Seccion.DTOs;
+﻿using Application.MesPeriodo;
+using Application.MesPeriodo.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,47 +8,44 @@ namespace SistemaColegio.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "Administrador")]
-    public class SessionController : ControllerBase
+    public class AcademicMonthController : ControllerBase
     {
-        private readonly ISessionAppService _sessionAppService;
-
-        public SessionController(ISessionAppService sessionAppService)
+        private readonly IAcademicMonthAppService _academicMonthAppService;
+    public AcademicMonthController(IAcademicMonthAppService academicMonthAppService)
         {
-            _sessionAppService = sessionAppService;
+            _academicMonthAppService = academicMonthAppService;
         }
 
-        // GET: api/Session
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var sessions =
-                await _sessionAppService.GetAllSession();
+            var academicMonths =
+                await _academicMonthAppService.GetAllAcademicMonth();
 
-            return Ok(sessions);
+            return Ok(academicMonths);
         }
 
-        // GET: api/Session/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var session =
-                await _sessionAppService.GetSessionById(id);
+            var academicMonth =
+                await _academicMonthAppService
+                    .GetAcademicMonthById(id);
 
-            if (session == null)
+            if (academicMonth == null)
             {
                 return NotFound(new
                 {
-                    mensaje = "La sección no existe."
+                    mensaje = "El mes académico no existe."
                 });
             }
 
-            return Ok(session);
+            return Ok(academicMonth);
         }
 
-        // POST: api/Session
         [HttpPost]
         public async Task<IActionResult> Create(
-            [FromBody] SessionDto session)
+            [FromBody] AcademicMonthDto academicMonth)
         {
             if (!ModelState.IsValid)
             {
@@ -57,10 +54,11 @@ namespace SistemaColegio.Controllers
 
             try
             {
-                var newSession =
-                    await _sessionAppService.AddSession(session);
+                var newAcademicMonth =
+                    await _academicMonthAppService
+                        .AddAcademicMonth(academicMonth);
 
-                return Ok(newSession);
+                return Ok(newAcademicMonth);
             }
             catch (Exception ex)
             {
@@ -71,11 +69,10 @@ namespace SistemaColegio.Controllers
             }
         }
 
-        // PUT: api/Session/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(
             int id,
-            [FromBody] SessionDto session)
+            [FromBody] AcademicMonthDto academicMonth)
         {
             if (!ModelState.IsValid)
             {
@@ -84,20 +81,21 @@ namespace SistemaColegio.Controllers
 
             try
             {
-                session.IdSeccion = id;
+                academicMonth.IdMesAcademico = id;
 
-                var updatedSession =
-                    await _sessionAppService.UpdateSession(session);
+                var updatedAcademicMonth =
+                    await _academicMonthAppService
+                        .UpdateAcademicMonth(academicMonth);
 
-                if (updatedSession == null)
+                if (updatedAcademicMonth == null)
                 {
                     return NotFound(new
                     {
-                        mensaje = "La sección no existe."
+                        mensaje = "El mes académico no existe."
                     });
                 }
 
-                return Ok(updatedSession);
+                return Ok(updatedAcademicMonth);
             }
             catch (Exception ex)
             {
@@ -108,27 +106,28 @@ namespace SistemaColegio.Controllers
             }
         }
 
-        // DELETE: api/Session/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                var session =
-                    await _sessionAppService.GetSessionById(id);
+                var academicMonth =
+                    await _academicMonthAppService
+                        .GetAcademicMonthById(id);
 
-                if (session == null)
+                if (academicMonth == null)
                 {
                     return NotFound(new
                     {
-                        mensaje = "La sección no existe."
+                        mensaje = "El mes académico no existe."
                     });
                 }
 
-                var deletedSession =
-                    await _sessionAppService.DeleteSession(session);
+                var deletedAcademicMonth =
+                    await _academicMonthAppService
+                        .DeleteAcademicMonth(academicMonth);
 
-                return Ok(deletedSession);
+                return Ok(deletedAcademicMonth);
             }
             catch (Exception ex)
             {
@@ -139,14 +138,14 @@ namespace SistemaColegio.Controllers
             }
         }
 
-        // GET: api/Session/not-deleted
         [HttpGet("not-deleted")]
         public async Task<IActionResult> GetNotDeleted()
         {
-            var sessions =
-                await _sessionAppService.GetSessionNotDeleted();
+            var academicMonths =
+                await _academicMonthAppService
+                    .GetAcademicMonthNotDeleted();
 
-            return Ok(sessions);
+            return Ok(academicMonths);
         }
     }
 }

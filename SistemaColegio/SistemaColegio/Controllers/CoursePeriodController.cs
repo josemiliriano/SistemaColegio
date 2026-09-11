@@ -1,10 +1,14 @@
 ﻿using Application.CursoPeriodo;
 using Application.CursoPeriodo.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class CoursePeriodController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class CoursePeriodController : ControllerBase
     {
         private readonly ICoursePeriodAppService _coursePeriodAppService;
 
@@ -14,17 +18,19 @@ namespace SistemaColegio.Controllers
             _coursePeriodAppService = coursePeriodAppService;
         }
 
-        // GET: CoursePeriod
-        public async Task<IActionResult> Index()
+        // GET: api/CoursePeriod
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var coursePeriods =
                 await _coursePeriodAppService.GetAllCoursePeriod();
 
-            return View(coursePeriods);
+            return Ok(coursePeriods);
         }
 
-        // GET: CoursePeriod/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/CoursePeriod/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var coursePeriod =
                 await _coursePeriodAppService
@@ -32,75 +38,55 @@ namespace SistemaColegio.Controllers
 
             if (coursePeriod == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "La relación curso-período no existe."
+                });
             }
 
-            return View(coursePeriod);
+            return Ok(coursePeriod);
         }
 
-        // GET: CoursePeriod/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: CoursePeriod/Create
+        // POST: api/CoursePeriod
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            CursoPeriodoDto coursePeriod)
+            [FromBody] CursoPeriodoDto coursePeriod)
         {
             if (!ModelState.IsValid)
             {
-                return View(coursePeriod);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _coursePeriodAppService
-                    .AddCoursePeriod(coursePeriod);
+                var newCoursePeriod =
+                    await _coursePeriodAppService
+                        .AddCoursePeriod(coursePeriod);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newCoursePeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(coursePeriod);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: CoursePeriod/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var coursePeriod =
-                await _coursePeriodAppService
-                    .GetCoursePeriodById(id);
-
-            if (coursePeriod == null)
-            {
-                return NotFound();
-            }
-
-            return View(coursePeriod);
-        }
-
-        // POST: CoursePeriod/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/CoursePeriod/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            CursoPeriodoDto coursePeriod)
+            [FromBody] CursoPeriodoDto coursePeriod)
         {
             if (!ModelState.IsValid)
             {
-                return View(coursePeriod);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                // El ID de la URL identifica
-                // directamente el registro.
                 coursePeriod.IdCursoPeriodo = id;
 
                 var updatedCoursePeriod =
@@ -109,44 +95,65 @@ namespace SistemaColegio.Controllers
 
                 if (updatedCoursePeriod == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La relación curso-período no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedCoursePeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(coursePeriod);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: CoursePeriod/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/CoursePeriod/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                var coursePeriod = await _coursePeriodAppService.GetCoursePeriodById(id);
+                var coursePeriod =
+                    await _coursePeriodAppService
+                        .GetCoursePeriodById(id);
 
                 if (coursePeriod == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La relación curso-período no existe."
+                    });
                 }
 
-                await _coursePeriodAppService
-                    .DeleteCoursePeriod(coursePeriod);
+                var deletedCoursePeriod =
+                    await _coursePeriodAppService
+                        .DeleteCoursePeriod(coursePeriod);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedCoursePeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/CoursePeriod/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var coursePeriods =
+                await _coursePeriodAppService
+                    .GetCoursePeriodNotDeleted();
+
+            return Ok(coursePeriods);
         }
     }
 }

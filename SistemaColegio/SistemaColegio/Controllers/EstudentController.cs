@@ -1,5 +1,5 @@
-﻿using Application.Seccion;
-using Application.Seccion.DTOs;
+﻿using Application.Estudiante;
+using Application.Estudiante.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,47 +8,42 @@ namespace SistemaColegio.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "Administrador")]
-    public class SessionController : ControllerBase
+    public class EstudentController : ControllerBase
     {
-        private readonly ISessionAppService _sessionAppService;
+        private readonly IEstudentAppService _estudentAppService;
 
-        public SessionController(ISessionAppService sessionAppService)
+    public EstudentController(IEstudentAppService estudentAppService)
         {
-            _sessionAppService = sessionAppService;
+            _estudentAppService = estudentAppService;
         }
 
-        // GET: api/Session
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var sessions =
-                await _sessionAppService.GetAllSession();
+            var students = await _estudentAppService.GetAllEstudent();
 
-            return Ok(sessions);
+            return Ok(students);
         }
 
-        // GET: api/Session/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var session =
-                await _sessionAppService.GetSessionById(id);
+            var student = await _estudentAppService.GetEstudentById(id);
 
-            if (session == null)
+            if (student == null)
             {
                 return NotFound(new
                 {
-                    mensaje = "La sección no existe."
+                    mensaje = "El estudiante no existe."
                 });
             }
 
-            return Ok(session);
+            return Ok(student);
         }
 
-        // POST: api/Session
         [HttpPost]
         public async Task<IActionResult> Create(
-            [FromBody] SessionDto session)
+            [FromBody] EstudentDto student)
         {
             if (!ModelState.IsValid)
             {
@@ -57,10 +52,10 @@ namespace SistemaColegio.Controllers
 
             try
             {
-                var newSession =
-                    await _sessionAppService.AddSession(session);
+                var newStudent =
+                    await _estudentAppService.AddEstudent(student);
 
-                return Ok(newSession);
+                return Ok(newStudent);
             }
             catch (Exception ex)
             {
@@ -71,11 +66,10 @@ namespace SistemaColegio.Controllers
             }
         }
 
-        // PUT: api/Session/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(
             int id,
-            [FromBody] SessionDto session)
+            [FromBody] EstudentDto student)
         {
             if (!ModelState.IsValid)
             {
@@ -84,20 +78,20 @@ namespace SistemaColegio.Controllers
 
             try
             {
-                session.IdSeccion = id;
+                student.IdEstudiante = id;
 
-                var updatedSession =
-                    await _sessionAppService.UpdateSession(session);
+                var updatedStudent =
+                    await _estudentAppService.UpdateEstudent(student);
 
-                if (updatedSession == null)
+                if (updatedStudent == null)
                 {
                     return NotFound(new
                     {
-                        mensaje = "La sección no existe."
+                        mensaje = "El estudiante no existe."
                     });
                 }
 
-                return Ok(updatedSession);
+                return Ok(updatedStudent);
             }
             catch (Exception ex)
             {
@@ -108,27 +102,26 @@ namespace SistemaColegio.Controllers
             }
         }
 
-        // DELETE: api/Session/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                var session =
-                    await _sessionAppService.GetSessionById(id);
+                var student =
+                    await _estudentAppService.GetEstudentById(id);
 
-                if (session == null)
+                if (student == null)
                 {
                     return NotFound(new
                     {
-                        mensaje = "La sección no existe."
+                        mensaje = "El estudiante no existe."
                     });
                 }
 
-                var deletedSession =
-                    await _sessionAppService.DeleteSession(session);
+                var deletedStudent =
+                    await _estudentAppService.DeleteEstudent(student);
 
-                return Ok(deletedSession);
+                return Ok(deletedStudent);
             }
             catch (Exception ex)
             {
@@ -139,14 +132,14 @@ namespace SistemaColegio.Controllers
             }
         }
 
-        // GET: api/Session/not-deleted
         [HttpGet("not-deleted")]
         public async Task<IActionResult> GetNotDeleted()
         {
-            var sessions =
-                await _sessionAppService.GetSessionNotDeleted();
+            var students =
+                await _estudentAppService.GetEstudentNotDeleted();
 
-            return Ok(sessions);
+            return Ok(students);
         }
     }
+
 }

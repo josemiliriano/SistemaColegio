@@ -1,10 +1,14 @@
 ﻿using Application.AsignacionDocente;
 using Application.AsignacionDocente.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class TeachingAssignmentController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class TeachingAssignmentController : ControllerBase
     {
         private readonly ITeachingAssignmentAppService
             _teachingAssignmentAppService;
@@ -16,18 +20,20 @@ namespace SistemaColegio.Controllers
                 teachingAssignmentAppService;
         }
 
-        // GET: TeachingAssignment
-        public async Task<IActionResult> Index()
+        // GET: api/TeachingAssignment
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var teachingAssignments =
                 await _teachingAssignmentAppService
                     .GetAllTeachingAssignment();
 
-            return View(teachingAssignments);
+            return Ok(teachingAssignments);
         }
 
-        // GET: TeachingAssignment/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/TeachingAssignment/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var teachingAssignment =
                 await _teachingAssignmentAppService
@@ -35,101 +41,82 @@ namespace SistemaColegio.Controllers
 
             if (teachingAssignment == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "La asignación docente no existe."
+                });
             }
 
-            return View(teachingAssignment);
+            return Ok(teachingAssignment);
         }
 
-        // GET: TeachingAssignment/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: TeachingAssignment/Create
+        // POST: api/TeachingAssignment
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            TeachingAssignmentDto teachingAssignment)
+            [FromBody] TeachingAssignmentDto teachingAssignment)
         {
             if (!ModelState.IsValid)
             {
-                return View(teachingAssignment);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _teachingAssignmentAppService
-                    .AddTeachingAssignment(
-                        teachingAssignment);
+                var newTeachingAssignment =
+                    await _teachingAssignmentAppService
+                        .AddTeachingAssignment(teachingAssignment);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newTeachingAssignment);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(teachingAssignment);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: TeachingAssignment/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var teachingAssignment =
-                await _teachingAssignmentAppService
-                    .GetTeachingAssignmentById(id);
-
-            if (teachingAssignment == null)
-            {
-                return NotFound();
-            }
-
-            return View(teachingAssignment);
-        }
-
-        // POST: TeachingAssignment/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/TeachingAssignment/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            TeachingAssignmentDto teachingAssignment)
+            [FromBody] TeachingAssignmentDto teachingAssignment)
         {
             if (!ModelState.IsValid)
             {
-                return View(teachingAssignment);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                // El ID de la URL identifica
-                // la asignación docente.
                 teachingAssignment.IdAsignacionDocente = id;
 
                 var updatedTeachingAssignment =
                     await _teachingAssignmentAppService
-                        .UpdateTeachingAssignment(
-                            teachingAssignment);
+                        .UpdateTeachingAssignment(teachingAssignment);
 
                 if (updatedTeachingAssignment == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La asignación docente no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedTeachingAssignment);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(teachingAssignment);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: TeachingAssignment/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/TeachingAssignment/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -140,21 +127,37 @@ namespace SistemaColegio.Controllers
 
                 if (teachingAssignment == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La asignación docente no existe."
+                    });
                 }
 
-                await _teachingAssignmentAppService
-                    .DeleteTeachingAssignment(
-                        teachingAssignment);
+                var deletedTeachingAssignment =
+                    await _teachingAssignmentAppService
+                        .DeleteTeachingAssignment(
+                            teachingAssignment);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedTeachingAssignment);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/TeachingAssignment/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var teachingAssignments =
+                await _teachingAssignmentAppService
+                    .GetTeachingAssignmentNotDeleted();
+
+            return Ok(teachingAssignments);
         }
     }
 }

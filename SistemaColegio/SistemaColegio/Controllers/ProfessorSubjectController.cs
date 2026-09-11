@@ -1,31 +1,38 @@
 ﻿using Application.ProfesorMateria;
 using Application.ProfesorMateria.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class ProfessorSubjectController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class ProfessorSubjectController : ControllerBase
     {
         private readonly IProfessorSubjectAppService
             _professorSubjectAppService;
 
-        public ProfessorSubjectController(IProfessorSubjectAppService professorSubjectAppService)
+        public ProfessorSubjectController(
+            IProfessorSubjectAppService professorSubjectAppService)
         {
             _professorSubjectAppService = professorSubjectAppService;
         }
 
-        // GET: ProfessorSubject
-        public async Task<IActionResult> Index()
+        // GET: api/ProfessorSubject
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var professorSubjects =
                 await _professorSubjectAppService
                     .GetAllProfessorSubject();
 
-            return View(professorSubjects);
+            return Ok(professorSubjects);
         }
 
-        // GET: ProfessorSubject/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/ProfessorSubject/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var professorSubject =
                 await _professorSubjectAppService
@@ -33,69 +40,51 @@ namespace SistemaColegio.Controllers
 
             if (professorSubject == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "La relación profesor-materia no existe."
+                });
             }
 
-            return View(professorSubject);
+            return Ok(professorSubject);
         }
 
-        // GET: ProfessorSubject/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: ProfessorSubject/Create
+        // POST: api/ProfessorSubject
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            ProfessorSubjectDto professorSubject)
+            [FromBody] ProfessorSubjectDto professorSubject)
         {
             if (!ModelState.IsValid)
             {
-                return View(professorSubject);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _professorSubjectAppService
-                    .AddProfessorSubject(professorSubject);
+                var newProfessorSubject =
+                    await _professorSubjectAppService
+                        .AddProfessorSubject(professorSubject);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newProfessorSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(professorSubject);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: ProfessorSubject/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var professorSubject =
-                await _professorSubjectAppService
-                    .GetProfessorSubjectById(id);
-
-            if (professorSubject == null)
-            {
-                return NotFound();
-            }
-
-            return View(professorSubject);
-        }
-
-        // POST: ProfessorSubject/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/ProfessorSubject/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            ProfessorSubjectDto professorSubject)
+            [FromBody] ProfessorSubjectDto professorSubject)
         {
             if (!ModelState.IsValid)
             {
-                return View(professorSubject);
+                return BadRequest(ModelState);
             }
 
             try
@@ -104,27 +93,29 @@ namespace SistemaColegio.Controllers
 
                 var updatedProfessorSubject =
                     await _professorSubjectAppService
-                        .UpdateProfessorSubject(
-                            professorSubject);
+                        .UpdateProfessorSubject(professorSubject);
 
                 if (updatedProfessorSubject == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La relación profesor-materia no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedProfessorSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(professorSubject);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: ProfessorSubject/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/ProfessorSubject/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -135,21 +126,36 @@ namespace SistemaColegio.Controllers
 
                 if (professorSubject == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La relación profesor-materia no existe."
+                    });
                 }
 
-                await _professorSubjectAppService
-                    .DeleteProfessorSubject(
-                        professorSubject);
+                var deletedProfessorSubject =
+                    await _professorSubjectAppService
+                        .DeleteProfessorSubject(professorSubject);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedProfessorSubject);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/ProfessorSubject/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var professorSubjects =
+                await _professorSubjectAppService
+                    .GetProfessorSubjectNotDeleted();
+
+            return Ok(professorSubjects);
         }
     }
 }

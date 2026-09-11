@@ -1,10 +1,14 @@
 ﻿using Application.PeriodoSesion;
 using Application.PeriodoSesion.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaColegio.Controllers
 {
-    public class SessionPeriodController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class SessionPeriodController : ControllerBase
     {
         private readonly ISessionPeriodAppService
             _sessionPeriodAppService;
@@ -16,18 +20,20 @@ namespace SistemaColegio.Controllers
                 sessionPeriodAppService;
         }
 
-        // GET: SessionPeriod
-        public async Task<IActionResult> Index()
+        // GET: api/SessionPeriod
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var sessionPeriods =
                 await _sessionPeriodAppService
                     .GetAllSessionPeriod();
 
-            return View(sessionPeriods);
+            return Ok(sessionPeriods);
         }
 
-        // GET: SessionPeriod/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: api/SessionPeriod/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var sessionPeriod =
                 await _sessionPeriodAppService
@@ -35,75 +41,55 @@ namespace SistemaColegio.Controllers
 
             if (sessionPeriod == null)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    mensaje = "La relación sección-período no existe."
+                });
             }
 
-            return View(sessionPeriod);
+            return Ok(sessionPeriod);
         }
 
-        // GET: SessionPeriod/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: SessionPeriod/Create
+        // POST: api/SessionPeriod
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            SessionPeriodDto sessionPeriod)
+            [FromBody] SessionPeriodDto sessionPeriod)
         {
             if (!ModelState.IsValid)
             {
-                return View(sessionPeriod);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                await _sessionPeriodAppService
-                    .AddSessionPeriod(sessionPeriod);
+                var newSessionPeriod =
+                    await _sessionPeriodAppService
+                        .AddSessionPeriod(sessionPeriod);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(newSessionPeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(sessionPeriod);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // GET: SessionPeriod/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var sessionPeriod =
-                await _sessionPeriodAppService
-                    .GetSessionPeriodById(id);
-
-            if (sessionPeriod == null)
-            {
-                return NotFound();
-            }
-
-            return View(sessionPeriod);
-        }
-
-        // POST: SessionPeriod/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
+        // PUT: api/SessionPeriod/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
             int id,
-            SessionPeriodDto sessionPeriod)
+            [FromBody] SessionPeriodDto sessionPeriod)
         {
             if (!ModelState.IsValid)
             {
-                return View(sessionPeriod);
+                return BadRequest(ModelState);
             }
 
             try
             {
-                // El ID de la URL identifica
-                // la relación sección-período.
                 sessionPeriod.IdSessionPeriod = id;
 
                 var updatedSessionPeriod =
@@ -112,22 +98,25 @@ namespace SistemaColegio.Controllers
 
                 if (updatedSessionPeriod == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La relación sección-período no existe."
+                    });
                 }
 
-                return RedirectToAction(nameof(Index));
+                return Ok(updatedSessionPeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return View(sessionPeriod);
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
-        // POST: SessionPeriod/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/SessionPeriod/5
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -138,20 +127,36 @@ namespace SistemaColegio.Controllers
 
                 if (sessionPeriod == null)
                 {
-                    return NotFound();
+                    return NotFound(new
+                    {
+                        mensaje = "La relación sección-período no existe."
+                    });
                 }
 
-                await _sessionPeriodAppService
-                    .DeleteSessionPeriod(sessionPeriod);
+                var deletedSessionPeriod =
+                    await _sessionPeriodAppService
+                        .DeleteSessionPeriod(sessionPeriod);
 
-                return RedirectToAction(nameof(Index));
+                return Ok(deletedSessionPeriod);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-
-                return RedirectToAction(nameof(Index));
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
             }
+        }
+
+        // GET: api/SessionPeriod/not-deleted
+        [HttpGet("not-deleted")]
+        public async Task<IActionResult> GetNotDeleted()
+        {
+            var sessionPeriods =
+                await _sessionPeriodAppService
+                    .GetSessionPeriodNotDeleted();
+
+            return Ok(sessionPeriods);
         }
     }
 }
