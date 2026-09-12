@@ -55,8 +55,7 @@ namespace Application.Seccion
 
             if (sessionExists)
             {
-                throw new Exception(
-                    "La sección ya existe para este curso.");
+                throw new Exception("La sección ya existe para este curso.");
             }
 
             // Crear sección
@@ -64,20 +63,19 @@ namespace Application.Seccion
             {
                 IdCurso = session.IdCurso,
                 Nombre = session.Nombre,
-                CupoCapacidadMaximo = session.CupoCapacidadMaximo,
-                Activo = session.Activo,
-                IsDelete = '0'
+                CupoCapacidadMaximo = session.CupoCapacidadMaximo
             };
 
             newSession = await _sessionRepository.Add(newSession);
+
+            await _context.SaveChangesAsync();
 
             return new SessionDto
             {
                 IdSeccion = newSession.IdSeccion,
                 IdCurso = newSession.IdCurso,
                 Nombre = newSession.Nombre,
-                CupoCapacidadMaximo =
-                    newSession.CupoCapacidadMaximo,
+                CupoCapacidadMaximo = newSession.CupoCapacidadMaximo,
                 Activo = newSession.Activo
             };
         }
@@ -85,7 +83,7 @@ namespace Application.Seccion
         public async Task<List<SessionDto>> GetAllSession()
         {
             var sessions = await _sessionRepository.GetAll();
-            await _context.SaveChangesAsync();
+
             return sessions
                 .Where(x => x.IsDelete == '0')
                 .Select(x => new SessionDto
@@ -93,11 +91,9 @@ namespace Application.Seccion
                     IdSeccion = x.IdSeccion,
                     IdCurso = x.IdCurso,
                     Nombre = x.Nombre,
-                    CupoCapacidadMaximo =
-                        x.CupoCapacidadMaximo,
+                    CupoCapacidadMaximo = x.CupoCapacidadMaximo,
                     Activo = x.Activo
-                })
-                .ToList();
+                }).ToList();
         }
 
         public async Task<SessionDto> GetSessionById(int id)

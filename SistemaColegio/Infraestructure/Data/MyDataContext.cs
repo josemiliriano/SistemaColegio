@@ -240,6 +240,12 @@ namespace Infraestructure.Data
                 .WithMany()
                 .HasForeignKey(x => x.IdSubPeriodo)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Session>()
+                .HasOne(x => x.Course)
+                .WithMany(x => x.Sessions)
+                .HasForeignKey(x => x.IdCurso)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<Person> Persons { get; set; }
         public DbSet<CDUser> Users { get; set; }
@@ -248,7 +254,8 @@ namespace Infraestructure.Data
         public DbSet<Period> Periods { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<ProfessorSubject> ProfessorSubjects { get; set; }
-        public DbSet<Course> Courses { get; set; }        
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<Session> Sessions { get; set; }
         public DbSet<CoursePeriod> CoursePeriods { get; set; }
         public DbSet<SubPeriod> SubPeriods { get; set; }
         public DbSet<AcademicSubPeriod> AcademicSubPeriods { get; set; }
@@ -257,6 +264,7 @@ namespace Infraestructure.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<CourseSubject> CourseSubjects { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
+
 
     }
 }

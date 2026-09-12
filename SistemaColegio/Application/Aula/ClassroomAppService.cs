@@ -21,16 +21,14 @@ namespace Application.Aula
 
         public async Task<ClassroomDto> AddClassroom(ClassroomDto classroom)
         {
-            // Validar capacidad
             if (classroom.Capacidad <= 0)
             {
-                throw new Exception("La capacidad del aula debe ser mayor que cero.");
+                throw new Exception(
+                    "La capacidad del aula debe ser mayor que cero.");
             }
 
-            // Obtener aulas existentes
             var classrooms = await _classroomRepository.GetAll();
 
-            // Validar nombre duplicado
             var classroomExists = classrooms.Any(x =>
                 x.Nombre == classroom.Nombre &&
                 x.IsDelete == '0');
@@ -41,20 +39,17 @@ namespace Application.Aula
                     "El aula ya existe.");
             }
 
-            // Crear aula
             var newClassroom = new Classroom
             {
                 Nombre = classroom.Nombre,
                 Ubicacion = classroom.Ubicacion,
-                Capacidad = classroom.Capacidad,
-                Activo = classroom.Activo,
-                IsDelete = '0'
+                Capacidad = classroom.Capacidad
             };
 
-            // Guardar
             newClassroom = await _classroomRepository.Add(newClassroom);
+
             await _context.SaveChangesAsync();
-            // Retornar DTO
+
             return new ClassroomDto
             {
                 IdAula = newClassroom.IdAula,
