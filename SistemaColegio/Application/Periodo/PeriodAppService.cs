@@ -47,13 +47,12 @@ namespace Application.Periodo
             {
                 Nombre = period.Nombre,
                 FechaInicio = period.FechaInicio,
-                FechaFin = period.FechaFin,
-                Activo = period.Activo,
-                IsDelete = '0'
+                FechaFin = period.FechaFin
             };
 
             // Guardar
             newPeriod = await _periodRepository.Add(newPeriod);
+
             await _context.SaveChangesAsync();
 
             // Retornar DTO

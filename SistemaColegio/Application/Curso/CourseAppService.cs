@@ -36,9 +36,8 @@ namespace Application.Curso
 
             var newCourse = new Course
             {
-                Nombre = course.Nombre,
-                Activo = course.Activo,
-                IsDelete = '0'
+                Nombre = course.Nombre
+               
             };
 
             newCourse = await _courseRepository.Add(newCourse);
@@ -106,8 +105,7 @@ namespace Application.Curso
 
             if (courseExists)
             {
-                throw new Exception(
-                    "El curso ya existe.");
+                throw new Exception("El curso ya existe.");
             }
 
             existingCourse.Nombre = course.Nombre;

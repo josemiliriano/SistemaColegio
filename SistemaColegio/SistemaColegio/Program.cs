@@ -6,11 +6,12 @@ using Application.CursoMateria;
 using Application.CursoPeriodo;
 using Application.CursoPeriodo.Application.CursoPeriodo;
 using Application.Estudiante;
+using Application.Evaluacion;
+using Application.Evaluation;
 using Application.Materia;
 using Application.MesPeriodo;
 using Application.Periodo;
 using Application.PeriodoSesion;
-using Application.PeriodoSesion.Application.SeccionPeriodo;
 using Application.Persona;
 using Application.Profesor;
 using Application.ProfesorMateria;
@@ -79,6 +80,7 @@ builder.Services.AddScoped<ICourseSubjectAppService, CourseSubjectAppService>();
 builder.Services.AddScoped<IProfessorSubjectAppService, ProfessorSubjectAppService>();
 builder.Services.AddScoped<ISessionPeriodAppService, SessionPeriodAppService>();
 builder.Services.AddScoped<ITeachingAssignmentAppService, TeachingAssignmentAppService>();
+builder.Services.AddScoped<IEvaluationAppService, EvaluationAppService>();
 
 // Autenticación
 builder.Services.AddScoped<IAuthAppService, AuthAppService>();

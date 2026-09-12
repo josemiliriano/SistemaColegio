@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -17,8 +18,6 @@ namespace Domain.Entities
         public ICollection<CourseSubject> CourseSubjects { get; set; } = new List<CourseSubject>();
     }
 }
-
-
 
 
 

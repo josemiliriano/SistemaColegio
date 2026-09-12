@@ -75,13 +75,11 @@ namespace Application.ProfesorMateria
             {
                 IdProfesor = professorSubject.IdProfesor,
                 IdMateria = professorSubject.IdMateria,
-                Activo = professorSubject.Activo,
+                Activo = '1',
                 IsDelete = '0'
             };
 
-            newProfessorSubject =
-                await _professorSubjectRepository
-                    .Add(newProfessorSubject);
+            newProfessorSubject = await _professorSubjectRepository.Add(newProfessorSubject);
             await _context.SaveChangesAsync();
 
             return new ProfessorSubjectDto
@@ -95,8 +93,8 @@ namespace Application.ProfesorMateria
                 IdMateria =
                     newProfessorSubject.IdMateria,
 
-                Activo =
-                    newProfessorSubject.Activo
+                Activo ='1'
+                    
             };
         }
 
@@ -119,14 +117,11 @@ namespace Application.ProfesorMateria
                     IdMateria =
                         x.IdMateria,
 
-                    Activo =
-                        x.Activo
-                })
-                .ToList();
+                    Activo = x.Activo
+                }).ToList();
         }
 
-        public async Task<ProfessorSubjectDto>
-            GetProfessorSubjectById(int id)
+        public async Task<ProfessorSubjectDto> GetProfessorSubjectById(int id)
         {
             var professorSubject =
                 await _professorSubjectRepository
@@ -154,12 +149,12 @@ namespace Application.ProfesorMateria
             };
         }
 
-        public async Task<ProfessorSubjectDto> UpdateProfessorSubject( ProfessorSubjectDto professorSubject)
+        public async Task<ProfessorSubjectDto> UpdateProfessorSubject(
+    ProfessorSubjectDto professorSubject)
         {
             var existingProfessorSubject =
                 await _professorSubjectRepository
-                    .GetById(
-                        professorSubject.IdProfesorMateria);
+                    .GetById(professorSubject.IdProfesorMateria);
 
             if (existingProfessorSubject == null ||
                 existingProfessorSubject.IsDelete == '1')
@@ -167,7 +162,7 @@ namespace Application.ProfesorMateria
                 return null;
             }
 
-            // Solo modificamos el estado.
+            // Modificamos el estado según el valor recibido.
             existingProfessorSubject.Activo =
                 professorSubject.Activo;
 
