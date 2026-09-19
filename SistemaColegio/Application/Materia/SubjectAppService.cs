@@ -38,9 +38,7 @@ namespace Application.Materia
 
             var newSubject = new Subject
             {
-                Nombre = subject.Nombre,
-                Activo = subject.Activo,
-                IsDelete = '0'
+                Nombre = subject.Nombre                
             };
 
             newSubject = await _subjectRepository.Add(newSubject);

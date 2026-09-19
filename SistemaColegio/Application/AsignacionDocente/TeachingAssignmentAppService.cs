@@ -137,12 +137,7 @@ namespace Application.AsignacionDocente
                         teachingAssignment.IdProfesorMateria,
 
                     IdSessionPeriod =
-                        teachingAssignment.IdSessionPeriod,
-
-                    Activo =
-                        teachingAssignment.Activo,
-
-                    IsDelete = '0'
+                        teachingAssignment.IdSessionPeriod                    
                 };
 
             newTeachingAssignment = await _teachingAssignmentRepository.Add(newTeachingAssignment);

@@ -39,9 +39,8 @@ namespace Application.CursoMateria
                 var newCourseSubject = new CourseSubject
                 {
                     IdCurso = courseSubject.IdCurso,
-                    IdMateria = courseSubject.IdMateria,
-                    Activo = courseSubject.Activo,
-                    IsDelete = '0'
+                    IdMateria = courseSubject.IdMateria
+                    
                 };
 
                 newCourseSubject = await _courseSubjectRepository.Add(newCourseSubject);

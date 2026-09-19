@@ -33,7 +33,7 @@ namespace Application.MesPeriodo
             // Verificar que el periodo académico exista
             var academicSubPeriod =
                 await _academicSubPeriodRepository.GetById(
-                    academicMonth.IdPeriodoAcademico);
+                    academicMonth.IdSubPeriodoAcademico);
 
             if (academicSubPeriod == null ||
                 academicSubPeriod.IsDelete == '1' ||
@@ -69,8 +69,8 @@ namespace Application.MesPeriodo
 
             // Validar mes duplicado dentro del periodo académico
             var monthExists = academicMonths.Any(x =>
-                x.IdPeriodoAcademico ==
-                    academicMonth.IdPeriodoAcademico &&
+                x.IdSubPeriodoAcademico ==
+                    academicMonth.IdSubPeriodoAcademico &&
                 x.IdMes == academicMonth.IdMes &&
                 x.IsDelete == '0');
 
@@ -82,8 +82,8 @@ namespace Application.MesPeriodo
 
             // Validar orden duplicado dentro del periodo académico
             var orderExists = academicMonths.Any(x =>
-                x.IdPeriodoAcademico ==
-                    academicMonth.IdPeriodoAcademico &&
+                x.IdSubPeriodoAcademico ==
+                    academicMonth.IdSubPeriodoAcademico &&
                 x.Orden == academicMonth.Orden &&
                 x.IsDelete == '0');
 
@@ -96,19 +96,12 @@ namespace Application.MesPeriodo
             // Crear mes académico
             var newAcademicMonth = new AcademicMonth
             {
-                IdPeriodoAcademico =
-                    academicMonth.IdPeriodoAcademico,
+                IdSubPeriodoAcademico = academicMonth.IdSubPeriodoAcademico,
 
-                IdMes =
-                    academicMonth.IdMes,
+                IdMes = academicMonth.IdMes,
 
-                Orden =
-                    academicMonth.Orden,
-
-                Activo =
-                    academicMonth.Activo,
-
-                IsDelete = '0'
+                Orden = academicMonth.Orden
+               
             };
 
             newAcademicMonth =
@@ -122,8 +115,8 @@ namespace Application.MesPeriodo
                 IdMesAcademico =
                     newAcademicMonth.IdMesAcademico,
 
-                IdPeriodoAcademico =
-                    newAcademicMonth.IdPeriodoAcademico,
+                IdSubPeriodoAcademico =
+                    newAcademicMonth.IdSubPeriodoAcademico,
 
                 IdMes =
                     newAcademicMonth.IdMes,
@@ -146,22 +139,16 @@ namespace Application.MesPeriodo
                 .Where(x => x.IsDelete == '0')
                 .Select(x => new AcademicMonthDto
                 {
-                    IdMesAcademico =
-                        x.IdMesAcademico,
+                    IdMesAcademico = x.IdMesAcademico,
 
-                    IdPeriodoAcademico =
-                        x.IdPeriodoAcademico,
+                    IdSubPeriodoAcademico = x.IdSubPeriodoAcademico,
 
-                    IdMes =
-                        x.IdMes,
+                    IdMes = x.IdMes,
 
-                    Orden =
-                        x.Orden,
+                    Orden = x.Orden,
 
-                    Activo =
-                        x.Activo
-                })
-                .ToList();
+                    Activo = x.Activo
+                }).ToList();
         }
 
         public async Task<AcademicMonthDto>
@@ -181,8 +168,8 @@ namespace Application.MesPeriodo
                 IdMesAcademico =
                     academicMonth.IdMesAcademico,
 
-                IdPeriodoAcademico =
-                    academicMonth.IdPeriodoAcademico,
+                IdSubPeriodoAcademico =
+                    academicMonth.IdSubPeriodoAcademico,
 
                 IdMes =
                     academicMonth.IdMes,
@@ -216,7 +203,7 @@ namespace Application.MesPeriodo
             // Verificar que el periodo académico exista
             var academicSubPeriod =
                 await _academicSubPeriodRepository.GetById(
-                    academicMonth.IdPeriodoAcademico);
+                    academicMonth.IdSubPeriodoAcademico);
 
             if (academicSubPeriod == null ||
                 academicSubPeriod.IsDelete == '1' ||
@@ -250,8 +237,8 @@ namespace Application.MesPeriodo
             var monthExists = academicMonths.Any(x =>
                 x.IdMesAcademico !=
                     academicMonth.IdMesAcademico &&
-                x.IdPeriodoAcademico ==
-                    academicMonth.IdPeriodoAcademico &&
+                x.IdSubPeriodoAcademico ==
+                    academicMonth.IdSubPeriodoAcademico &&
                 x.IdMes == academicMonth.IdMes &&
                 x.IsDelete == '0');
 
@@ -265,8 +252,8 @@ namespace Application.MesPeriodo
             var orderExists = academicMonths.Any(x =>
                 x.IdMesAcademico !=
                     academicMonth.IdMesAcademico &&
-                x.IdPeriodoAcademico ==
-                    academicMonth.IdPeriodoAcademico &&
+                x.IdSubPeriodoAcademico ==
+                    academicMonth.IdSubPeriodoAcademico &&
                 x.Orden == academicMonth.Orden &&
                 x.IsDelete == '0');
 
@@ -277,8 +264,8 @@ namespace Application.MesPeriodo
             }
 
             // Actualizar
-            existingAcademicMonth.IdPeriodoAcademico =
-                academicMonth.IdPeriodoAcademico;
+            existingAcademicMonth.IdSubPeriodoAcademico =
+                academicMonth.IdSubPeriodoAcademico;
 
             existingAcademicMonth.IdMes =
                 academicMonth.IdMes;
@@ -299,8 +286,8 @@ namespace Application.MesPeriodo
                 IdMesAcademico =
                     existingAcademicMonth.IdMesAcademico,
 
-                IdPeriodoAcademico =
-                    existingAcademicMonth.IdPeriodoAcademico,
+                IdSubPeriodoAcademico =
+                    existingAcademicMonth.IdSubPeriodoAcademico,
 
                 IdMes =
                     existingAcademicMonth.IdMes,
@@ -341,8 +328,8 @@ namespace Application.MesPeriodo
                 IdMesAcademico =
                     existingAcademicMonth.IdMesAcademico,
 
-                IdPeriodoAcademico =
-                    existingAcademicMonth.IdPeriodoAcademico,
+                IdSubPeriodoAcademico =
+                    existingAcademicMonth.IdSubPeriodoAcademico,
 
                 IdMes =
                     existingAcademicMonth.IdMes,

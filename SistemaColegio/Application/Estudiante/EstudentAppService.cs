@@ -61,9 +61,7 @@ namespace Application.Estudiante
             var newEstudent = new Estudent
             {
                 IdPersona = estudent.IdPersona,
-                CodigoEstudiante = estudent.CodigoEstudiante,
-                Activo = estudent.Activo,
-                IsDelete = '0'
+                CodigoEstudiante = estudent.CodigoEstudiante                
             };
 
             newEstudent = await _estudentRepository.Add(newEstudent);

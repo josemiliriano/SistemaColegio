@@ -9,6 +9,7 @@ namespace Application.Estudiante.DTOs
         public int IdEstudiante { get; set; }
         public int IdPersona { get; set; }
         public int CodigoEstudiante { get; set; }
+        public int IdSessionPeriod { get; set; }
         public char Activo { get; set; }
     }
 }
