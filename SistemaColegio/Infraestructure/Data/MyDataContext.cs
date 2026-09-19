@@ -131,7 +131,7 @@ namespace Infraestructure.Data
             modelBuilder.Entity<AcademicMonth>()
                 .HasOne(x => x.AcademicSubPeriod)
                 .WithMany(x => x.AcademicMonths)
-                .HasForeignKey(x => x.IdPeriodoAcademico)
+                .HasForeignKey(x => x.IdSubPeriodoAcademico)
                 .OnDelete(DeleteBehavior.Restrict);
 
 

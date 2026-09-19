@@ -16,6 +16,7 @@ using Application.Persona;
 using Application.Profesor;
 using Application.ProfesorMateria;
 using Application.Seccion;
+using Application.SubPeriodo;
 using Application.SubPeriodos;
 using Application.Usuario;
 using Infraestructure.Data;
@@ -81,6 +82,7 @@ builder.Services.AddScoped<IProfessorSubjectAppService, ProfessorSubjectAppServi
 builder.Services.AddScoped<ISessionPeriodAppService, SessionPeriodAppService>();
 builder.Services.AddScoped<ITeachingAssignmentAppService, TeachingAssignmentAppService>();
 builder.Services.AddScoped<IEvaluationAppService, EvaluationAppService>();
+builder.Services.AddScoped<ISubPeriodAppService, SubPeriodAppService>();
 
 // Autenticación
 builder.Services.AddScoped<IAuthAppService, AuthAppService>();

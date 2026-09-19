@@ -84,9 +84,7 @@ namespace Application.SubPeriodos
                 IdPeriodo = academicSubPeriod.IdPeriodo,
                 IdSubPeriodo = academicSubPeriod.IdSubPeriodo,
                 FechaInicio = academicSubPeriod.FechaInicio,
-                FechaFin = academicSubPeriod.FechaFin,
-                Activo = academicSubPeriod.Activo,
-                IsDelete = '0'
+                FechaFin = academicSubPeriod.FechaFin               
             };
 
             newAcademicSubPeriod =
