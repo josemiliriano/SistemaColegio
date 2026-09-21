@@ -140,6 +140,40 @@ namespace SistemaColegio.Controllers
 
             return Ok(students);
         }
+
+        [HttpPut("assign-session-period")]
+        public async Task<IActionResult> AssignSessionPeriod(
+     [FromBody] AssignStudentSessionPeriodDto assignment)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var student =
+                    await _estudentAppService
+                        .AssignStudentToSessionPeriod(assignment);
+
+                if (student == null)
+                {
+                    return NotFound(new
+                    {
+                        mensaje = "El estudiante no existe."
+                    });
+                }
+
+                return Ok(student);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
     }
 
 }

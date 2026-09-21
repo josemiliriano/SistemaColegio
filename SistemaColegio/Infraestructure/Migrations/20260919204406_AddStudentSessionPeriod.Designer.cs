@@ -4,6 +4,7 @@ using Infraestructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infraestructure.Migrations
 {
     [DbContext(typeof(MyDataContext))]
-    partial class MyDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260919204406_AddStudentSessionPeriod")]
+    partial class AddStudentSessionPeriod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,47 +290,6 @@ namespace Infraestructure.Migrations
                     b.HasIndex("IdSessionPeriod");
 
                     b.ToTable("Estudents");
-                });
-
-            modelBuilder.Entity("Domain.Entities.EstudentAcademicPeriod", b =>
-                {
-                    b.Property<int>("IdStudentAcademicPeriod")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdStudentAcademicPeriod"));
-
-                    b.Property<string>("Activo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<int>("IdEstudiante")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdPeriodo")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdSessionPeriod")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IsDelete")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Resultado")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("IdStudentAcademicPeriod");
-
-                    b.HasIndex("IdPeriodo");
-
-                    b.HasIndex("IdSessionPeriod");
-
-                    b.HasIndex("IdEstudiante", "IdPeriodo")
-                        .IsUnique();
-
-                    b.ToTable("EstudentAcademicPeriods");
                 });
 
             modelBuilder.Entity("Domain.Entities.Evaluation", b =>
@@ -846,33 +808,6 @@ namespace Infraestructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Person");
-
-                    b.Navigation("SessionPeriod");
-                });
-
-            modelBuilder.Entity("Domain.Entities.EstudentAcademicPeriod", b =>
-                {
-                    b.HasOne("Domain.Entities.Estudent", "Estudent")
-                        .WithMany()
-                        .HasForeignKey("IdEstudiante")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Period", "Period")
-                        .WithMany()
-                        .HasForeignKey("IdPeriodo")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.SessionPeriod", "SessionPeriod")
-                        .WithMany()
-                        .HasForeignKey("IdSessionPeriod")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Estudent");
-
-                    b.Navigation("Period");
 
                     b.Navigation("SessionPeriod");
                 });
