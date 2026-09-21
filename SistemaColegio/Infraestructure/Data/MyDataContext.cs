@@ -246,6 +246,46 @@ namespace Infraestructure.Data
                 .WithMany(x => x.Sessions)
                 .HasForeignKey(x => x.IdCurso)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Student -> SessionPeriod
+            modelBuilder.Entity<Estudent>()
+                .HasOne(x => x.SessionPeriod)
+                .WithMany()
+                .HasForeignKey(x => x.IdSessionPeriod)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Student -> SessionPeriod
+            modelBuilder.Entity<Estudent>()
+                .HasOne(x => x.SessionPeriod)
+                .WithMany()
+                .HasForeignKey(x => x.IdSessionPeriod)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<EstudentAcademicPeriod>()
+                .HasOne(x => x.Estudent)
+                .WithMany()
+                .HasForeignKey(x => x.IdEstudiante)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<EstudentAcademicPeriod>()
+                .HasOne(x => x.Period)
+                .WithMany()
+                .HasForeignKey(x => x.IdPeriodo)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<EstudentAcademicPeriod>()
+                .HasOne(x => x.SessionPeriod)
+                .WithMany()
+                .HasForeignKey(x => x.IdSessionPeriod)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<EstudentAcademicPeriod>()
+                .HasIndex(x => new
+                {
+                    x.IdEstudiante,
+                    x.IdPeriodo
+                })
+                .IsUnique();
         }
         public DbSet<Person> Persons { get; set; }
         public DbSet<CDUser> Users { get; set; }
@@ -264,6 +304,7 @@ namespace Infraestructure.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<CourseSubject> CourseSubjects { get; set; }
         public DbSet<Evaluation> Evaluations { get; set; }
+        public DbSet<EstudentAcademicPeriod> EstudentAcademicPeriods { get; set; }
 
 
     }

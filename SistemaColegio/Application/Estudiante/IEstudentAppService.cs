@@ -13,5 +13,6 @@ namespace Application.Estudiante
         Task<EstudentDto> UpdateEstudent(EstudentDto estudent);
         Task<EstudentDto> DeleteEstudent(EstudentDto estudent);
         Task<List<EstudentDto>> GetEstudentNotDeleted();
+        Task<EstudentDto> AssignStudentToSessionPeriod(AssignStudentSessionPeriodDto assignment);
     }
 }
