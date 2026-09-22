@@ -210,13 +210,15 @@ namespace Infraestructure.Data
 
 
             // Evita repetir ProfesorMateria + SessionPeriod
+            // solamente entre registros que NO han sido eliminados lógicamente
             modelBuilder.Entity<TeachingAssignment>()
                 .HasIndex(x => new
                 {
                     x.IdProfesorMateria,
                     x.IdSessionPeriod
                 })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[IsDelete] = '0'");
 
             // Evaluation -> Estudent
             modelBuilder.Entity<Evaluation>()

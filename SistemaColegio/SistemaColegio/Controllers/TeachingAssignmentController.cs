@@ -13,11 +13,9 @@ namespace SistemaColegio.Controllers
         private readonly ITeachingAssignmentAppService
             _teachingAssignmentAppService;
 
-        public TeachingAssignmentController(
-            ITeachingAssignmentAppService teachingAssignmentAppService)
+        public TeachingAssignmentController(ITeachingAssignmentAppService teachingAssignmentAppService)
         {
-            _teachingAssignmentAppService =
-                teachingAssignmentAppService;
+            _teachingAssignmentAppService = teachingAssignmentAppService;
         }
 
         // GET: api/TeachingAssignment

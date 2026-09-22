@@ -14,6 +14,8 @@ namespace Application.Estudiante
         private readonly GeneralRepository<Person> _personRepository;
         private readonly GeneralRepository<SessionPeriod> _sessionPeriodRepository;
         private readonly GeneralRepository<Period> _periodRepository;
+        private readonly GeneralRepository<Classroom> _classroomRepository;
+        private readonly GeneralRepository<Session> _sessionRepository;
         private readonly MyDataContext _context;
 
         public EstudentAppService(
@@ -21,12 +23,16 @@ namespace Application.Estudiante
             GeneralRepository<Person> personRepository,
             GeneralRepository<SessionPeriod> sessionPeriodRepository,
             GeneralRepository<Period> periodRepository,
+            GeneralRepository<Classroom> classroomRepository,
+            GeneralRepository<Session> sessionRepository,
             MyDataContext context)
         {
             _estudentRepository = estudentRepository;
             _personRepository = personRepository;
             _sessionPeriodRepository = sessionPeriodRepository;
             _periodRepository = periodRepository;
+            _classroomRepository = classroomRepository;
+            _sessionRepository = sessionRepository;
             _context = context;
         }
 
@@ -57,6 +63,33 @@ namespace Application.Estudiante
                     "El SessionPeriod especificado no existe o está inactivo.");
             }
 
+            // Validar Session
+            var session =
+                await _sessionRepository.GetById(
+                    sessionPeriod.IdSeccion);
+
+            if (session == null ||
+                session.IsDelete == '1' ||
+                session.Activo != '1')
+            {
+                throw new Exception(
+                    "La sección especificada no existe o está inactiva.");
+            }
+
+            // Contar estudiantes activos y no eliminados
+            // que pertenecen al mismo SessionPeriod
+            var studentsInSessionPeriod = students.Count(x =>
+                x.IdSessionPeriod == estudent.IdSessionPeriod &&
+                x.IsDelete == '0' &&
+                x.Activo == '1');
+
+            // Validar cupo máximo de la sección
+            if (studentsInSessionPeriod >= session.CupoCapacidadMaximo)
+            {
+                throw new Exception(
+                    "La sección ha alcanzado su capacidad máxima.");
+            }
+
             // Iniciar transacción
             await using var transaction =
                 await _context.BeginTransactionAsync();
@@ -81,8 +114,7 @@ namespace Application.Estudiante
                 {
                     Person = person,
                     CodigoEstudiante = estudent.CodigoEstudiante,
-                    IdSessionPeriod = estudent.IdSessionPeriod,
-                    
+                    IdSessionPeriod = estudent.IdSessionPeriod
                 };
 
                 await _estudentRepository.Add(newEstudent);
@@ -382,8 +414,10 @@ namespace Application.Estudiante
                 .ToList();
         }
 
-        public async Task<EstudentDto> AssignStudentToSessionPeriod(AssignStudentSessionPeriodDto assignment)
+        public async Task<EstudentDto> AssignStudentToSessionPeriod(
+     AssignStudentSessionPeriodDto assignment)
         {
+            // Buscar estudiante
             var student =
                 await _estudentRepository.GetFirstOrDefaultInclude(
                     x => x.IdEstudiante == assignment.IdEstudiante &&
@@ -392,13 +426,19 @@ namespace Application.Estudiante
                 );
 
             if (student == null)
+            {
                 return null;
+            }
 
+            // Validar que el estudiante esté activo
             if (student.Activo != '1')
+            {
                 throw new Exception(
                     "El estudiante está inactivo."
                 );
+            }
 
+            // Validar SessionPeriod
             var sessionPeriod =
                 await _sessionPeriodRepository.GetById(
                     assignment.IdSessionPeriod
@@ -413,6 +453,22 @@ namespace Application.Estudiante
                 );
             }
 
+            // Validar sección
+            var session =
+                await _sessionRepository.GetById(
+                    sessionPeriod.IdSeccion
+                );
+
+            if (session == null ||
+                session.IsDelete == '1' ||
+                session.Activo != '1')
+            {
+                throw new Exception(
+                    "La sección especificada no existe o está inactiva."
+                );
+            }
+
+            // Validar período académico
             var period =
                 await _periodRepository.GetById(
                     sessionPeriod.IdPeriodo
@@ -427,6 +483,7 @@ namespace Application.Estudiante
                 );
             }
 
+            // Validar que el período esté vigente
             var today = DateTime.Today;
 
             if (today < period.FechaInicio ||
@@ -437,37 +494,108 @@ namespace Application.Estudiante
                 );
             }
 
-            await using var transaction =
-                await _context.BeginTransactionAsync();
+            // Validar aula
+            var classroom =
+                await _classroomRepository.GetById(
+                    sessionPeriod.IdAula
+                );
+
+            if (classroom == null ||
+                classroom.IsDelete == '1' ||
+                classroom.Activo != '1')
+            {
+                throw new Exception(
+                    "El aula especificada no existe o está inactiva."
+                );
+            }
+
+            // Contar estudiantes activos y no eliminados
+            // asignados al SessionPeriod
+            var students =
+                await _estudentRepository.GetAll();
+
+            var studentsInSessionPeriod =
+                students.Count(x =>
+                    x.IdSessionPeriod == assignment.IdSessionPeriod &&
+                    x.IsDelete == '0' &&
+                    x.Activo == '1'
+                );
+
+            // Validar capacidad solamente si el estudiante
+            // viene de otro SessionPeriod
+            if (student.IdSessionPeriod != assignment.IdSessionPeriod)
+            {
+                // Validar capacidad máxima de la sección
+                if (studentsInSessionPeriod >= session.CupoCapacidadMaximo)
+                {
+                    throw new Exception(
+                        "La sección ha alcanzado su capacidad máxima."
+                    );
+                }
+
+                // Validar capacidad física del aula
+                if (studentsInSessionPeriod >= classroom.Capacidad)
+                {
+                    throw new Exception("El aula no tiene capacidad disponible.");
+                }
+            }
+
+            // Iniciar transacción
+            await using var transaction = await _context.BeginTransactionAsync();
 
             try
             {
+                // Asignar estudiante al nuevo SessionPeriod
                 student.IdSessionPeriod =
                     assignment.IdSessionPeriod;
 
                 await _estudentRepository.Update(student);
 
+                // Guardar cambios
                 await _context.SaveChangesAsync();
 
+                // Confirmar transacción
                 await transaction.CommitAsync();
 
+                // Retornar estudiante actualizado
                 return new EstudentDto
                 {
-                    IdEstudiante = student.IdEstudiante,
-                    IdPersona = student.IdPersona,
-                    Nombres = student.Person.Nombres,
-                    Apellidos = student.Person.Apellidos,
-                    FechaNacimiento = student.Person.FechaNacimiento,
-                    Telefono = student.Person.Telefono,
-                    Direccion = student.Person.Direccion,
-                    CodigoEstudiante = student.CodigoEstudiante,
-                    IdSessionPeriod = student.IdSessionPeriod,
-                    Activo = student.Activo
+                    IdEstudiante =
+                        student.IdEstudiante,
+
+                    IdPersona =
+                        student.IdPersona,
+
+                    Nombres =
+                        student.Person.Nombres,
+
+                    Apellidos =
+                        student.Person.Apellidos,
+
+                    FechaNacimiento =
+                        student.Person.FechaNacimiento,
+
+                    Telefono =
+                        student.Person.Telefono,
+
+                    Direccion =
+                        student.Person.Direccion,
+
+                    CodigoEstudiante =
+                        student.CodigoEstudiante,
+
+                    IdSessionPeriod =
+                        student.IdSessionPeriod,
+
+                    Activo =
+                        student.Activo
                 };
             }
             catch
             {
+                // Deshacer cambios
                 await transaction.RollbackAsync();
+
                 throw;
             }
         }
