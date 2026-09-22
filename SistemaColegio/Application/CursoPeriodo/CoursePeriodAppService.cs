@@ -41,9 +41,7 @@ namespace Application.CursoPeriodo
                 var newCoursePeriod = new CoursePeriod
                 {
                     IdCurso = cursoPeriodo.IdCurso,
-                    IdPeriodo = cursoPeriodo.IdPeriodo,
-                    Activo = cursoPeriodo.Activo,
-                    IsDelete = '0'
+                    IdPeriodo = cursoPeriodo.IdPeriodo                    
                 };
 
                 newCoursePeriod = await _coursePeriodRepository.Add(newCoursePeriod);
